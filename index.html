@@ -3,1260 +3,712 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>FinTrack — IT Finance Management</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<title>NexFinance — IT Finance Management</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-:root {
-  --primary:#6c63ff;
-  --primary-light:#f0effe;
-  --accent:#ff6b35;
-  --accent-light:#fff3ee;
-  --success:#00c48c;
-  --success-light:#e6faf5;
-  --danger:#ff647c;
-  --danger-light:#fff0f2;
-  --warning:#ffb547;
-  --warning-light:#fff8ec;
-  --info:#3d9ef8;
-  --info-light:#eaf4ff;
-  --dark:#1a1d2e;
-  --text:#2d3748;
-  --muted:#8a94a6;
-  --border:#edf0f7;
-  --bg:#f5f6fb;
-  --white:#ffffff;
+:root{
+  --primary:#6c63ff;--primary-light:#f0effe;--accent:#ff6b35;
+  --success:#00c48c;--success-light:#e6faf5;
+  --danger:#ff647c;--danger-light:#fff0f2;
+  --warning:#ffb547;--warning-light:#fff8ec;
+  --info:#3d9ef8;--info-light:#eaf4ff;
+  --dark:#1a1d2e;--text:#2d3748;--muted:#8a94a6;
+  --border:#edf0f7;--bg:#f5f6fb;--white:#fff;
   --sidebar-w:256px;
-  --card-shadow:0 2px 12px rgba(0,0,0,.06);
-  --card-shadow-hover:0 8px 28px rgba(0,0,0,.1);
+  --shadow:0 2px 12px rgba(0,0,0,.06);
+  --shadow-md:0 8px 28px rgba(0,0,0,.10);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;font-size:14px;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
+
+/* ── LOGIN ── */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#1a1d2e 0%,#312e81 50%,#1a1d2e 100%);}
+.login-card{background:#fff;border-radius:20px;padding:40px 36px;width:380px;box-shadow:0 24px 64px rgba(0,0,0,.25);}
+.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px;justify-content:center;}
+.login-logo-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#6c63ff,#ff6b35);display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:800;}
+.login-logo-text h1{font-size:20px;font-weight:800;color:var(--dark);}
+.login-logo-text span{font-size:11px;color:var(--muted);}
+.login-title{font-size:22px;font-weight:700;color:var(--dark);margin-bottom:6px;text-align:center;}
+.login-sub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:28px;}
+.login-err{background:var(--danger-light);color:var(--danger);padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:16px;display:none;}
+.login-err.show{display:block;}
+.form-group{margin-bottom:16px;}
+.form-group label{font-size:12px;font-weight:600;color:var(--text);display:block;margin-bottom:6px;}
+.form-group input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:'Inter',sans-serif;outline:none;transition:.18s;}
+.form-group input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.1);}
+.btn-login{width:100%;padding:12px;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:.18s;margin-top:4px;}
+.btn-login:hover{opacity:.9;}
+.btn-login:disabled{opacity:.6;cursor:not-allowed;}
+
+/* ── APP ── */
+#app{display:none;min-height:100vh;}
+#app.show{display:flex;}
 
 /* ── SIDEBAR ── */
-.sidebar{width:var(--sidebar-w);background:var(--white);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;border-right:1px solid var(--border);}
-.sidebar-logo{padding:28px 24px 20px;display:flex;align-items:center;gap:10px;}
-.logo-icon{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#6c63ff,#ff6b35);display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;font-weight:800;flex-shrink:0;}
-.logo-text h1{font-size:17px;font-weight:800;color:var(--dark);letter-spacing:-.3px;}
-.logo-text span{font-size:10px;color:var(--muted);font-weight:400;}
-.sidebar-nav{flex:1;padding:8px 16px;overflow-y:auto;}
-.nav-section-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:14px 8px 6px;}
-.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;color:var(--muted);font-size:13.5px;font-weight:500;transition:all .18s;margin-bottom:2px;position:relative;}
+.sidebar{width:var(--sidebar-w);background:#fff;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;border-right:1px solid var(--border);}
+.sidebar-logo{padding:24px 20px 16px;display:flex;align-items:center;gap:10px;}
+.logo-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#6c63ff,#ff6b35);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:800;flex-shrink:0;}
+.logo-text h1{font-size:16px;font-weight:800;color:var(--dark);}
+.logo-text span{font-size:10px;color:var(--muted);}
+.sidebar-nav{flex:1;padding:6px 14px;overflow-y:auto;}
+.nav-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:12px 8px 4px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;cursor:pointer;color:var(--muted);font-size:13.5px;font-weight:500;transition:.15s;margin-bottom:2px;position:relative;user-select:none;}
 .nav-item:hover{background:#f8f8ff;color:var(--primary);}
-.nav-item.active{background:linear-gradient(135deg,rgba(108,99,255,.12),rgba(255,107,53,.08));color:var(--primary);font-weight:600;}
-.nav-item.active::before{content:'';position:absolute;left:-16px;top:50%;transform:translateY(-50%);width:4px;height:24px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:0 4px 4px 0;}
-.nav-item .nav-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
-.nav-item.active .nav-icon{background:linear-gradient(135deg,var(--primary),var(--accent));box-shadow:0 4px 12px rgba(108,99,255,.3);}
-.nav-item.active .nav-icon svg,.nav-item.active .nav-icon{color:#fff;}
-.sidebar-upgrade{margin:16px;border-radius:16px;background:linear-gradient(135deg,#6c63ff,#ff6b35);padding:20px;color:#fff;position:relative;overflow:hidden;}
-.sidebar-upgrade::before{content:'';position:absolute;top:-20px;right:-20px;width:80px;height:80px;background:rgba(255,255,255,.1);border-radius:50%;}
-.sidebar-upgrade::after{content:'';position:absolute;bottom:-30px;left:-10px;width:100px;height:100px;background:rgba(255,255,255,.08);border-radius:50%;}
-.upgrade-trophy{font-size:28px;margin-bottom:8px;}
-.upgrade-title{font-size:13px;font-weight:700;margin-bottom:4px;}
-.upgrade-desc{font-size:11px;opacity:.8;margin-bottom:12px;line-height:1.5;}
-.upgrade-btn{background:#fff;color:var(--primary);border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;width:100%;transition:.18s;}
-.upgrade-btn:hover{opacity:.92;}
-.sidebar-footer{padding:16px;border-top:1px solid var(--border);}
-.user-card{display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;cursor:pointer;transition:.18s;}
+.nav-item.active{background:linear-gradient(135deg,rgba(108,99,255,.12),rgba(255,107,53,.06));color:var(--primary);font-weight:600;}
+.nav-item.active::before{content:'';position:absolute;left:-14px;top:50%;transform:translateY(-50%);width:4px;height:22px;background:linear-gradient(180deg,var(--primary),var(--accent));border-radius:0 4px 4px 0;}
+.nav-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.nav-item.active .nav-icon{background:linear-gradient(135deg,var(--primary),var(--accent));box-shadow:0 4px 10px rgba(108,99,255,.28);}
+.sidebar-upgrade{margin:12px 14px;border-radius:14px;background:linear-gradient(135deg,#6c63ff,#ff6b35);padding:16px;color:#fff;position:relative;overflow:hidden;}
+.sidebar-upgrade::before{content:'';position:absolute;top:-15px;right:-15px;width:64px;height:64px;background:rgba(255,255,255,.1);border-radius:50%;}
+.upgrade-t{font-size:12px;font-weight:700;margin-bottom:3px;}
+.upgrade-d{font-size:10px;opacity:.8;margin-bottom:10px;line-height:1.4;}
+.upgrade-btn{background:#fff;color:var(--primary);border:none;border-radius:7px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;width:100%;}
+.sidebar-footer{padding:12px 14px;border-top:1px solid var(--border);}
+.user-card{display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;cursor:pointer;transition:.15s;}
 .user-card:hover{background:var(--bg);}
-.user-avatar{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0;}
+.user-av{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;flex-shrink:0;}
 .user-name{font-size:13px;font-weight:600;color:var(--dark);}
-.user-role{font-size:11px;color:var(--muted);}
-.user-more{margin-left:auto;color:var(--muted);font-size:16px;}
+.user-role{font-size:10px;color:var(--muted);}
+.user-logout{margin-left:auto;font-size:15px;color:var(--muted);cursor:pointer;padding:4px;}
+.user-logout:hover{color:var(--danger);}
 
 /* ── MAIN ── */
 .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
-
-/* ── TOPBAR ── */
-.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 28px;height:68px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
-.topbar-left h2{font-size:20px;font-weight:700;color:var(--dark);}
-.topbar-left p{font-size:12px;color:var(--muted);margin-top:1px;}
-.topbar-right{display:flex;align-items:center;gap:12px;}
-.search-bar{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px 14px;width:220px;}
-.search-bar input{border:none;background:transparent;font-size:13px;color:var(--text);outline:none;width:100%;}
-.search-bar input::placeholder{color:var(--muted);}
-.search-bar span{color:var(--muted);font-size:13px;}
-.topbar-icon-btn{width:38px;height:38px;border-radius:10px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:.18s;position:relative;}
-.topbar-icon-btn:hover{background:var(--primary-light);}
-.notif-dot{position:absolute;top:7px;right:7px;width:7px;height:7px;background:var(--danger);border-radius:50%;border:1.5px solid var(--white);}
-.period-select{padding:8px 12px;border:1px solid var(--border);border-radius:10px;font-size:13px;background:var(--white);cursor:pointer;color:var(--text);font-family:'Inter',sans-serif;font-weight:500;}
-.btn{padding:9px 18px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:all .18s;font-family:'Inter',sans-serif;}
-.btn-primary{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;box-shadow:0 4px 14px rgba(108,99,255,.35);}
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.topbar-left h2{font-size:18px;font-weight:700;color:var(--dark);}
+.topbar-left p{font-size:11px;color:var(--muted);}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.period-sel{padding:7px 11px;border:1px solid var(--border);border-radius:9px;font-size:12px;font-family:'Inter',sans-serif;background:#fff;color:var(--text);cursor:pointer;}
+.btn{padding:8px 16px;border-radius:9px;border:none;cursor:pointer;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:.15s;font-family:'Inter',sans-serif;}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;box-shadow:0 4px 12px rgba(108,99,255,.3);}
 .btn-primary:hover{opacity:.9;transform:translateY(-1px);}
-.btn-outline{background:var(--white);border:1px solid var(--border);color:var(--text);}
+.btn-outline{background:#fff;border:1px solid var(--border);color:var(--text);}
 .btn-outline:hover{background:var(--bg);}
-.btn-sm{padding:6px 12px;font-size:12px;border-radius:8px;}
 .btn-success{background:var(--success);color:#fff;}
-.btn-danger-soft{background:var(--danger-light);color:var(--danger);border:none;}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-sm{padding:5px 10px;font-size:12px;border-radius:7px;}
+.btn-ghost{background:transparent;border:none;color:var(--muted);cursor:pointer;padding:4px 8px;border-radius:6px;font-family:'Inter',sans-serif;font-size:12px;}
+.btn-ghost:hover{background:var(--bg);color:var(--text);}
 
 /* ── CONTENT ── */
-.content{padding:24px 28px;flex:1;}
+.content{padding:22px 24px;flex:1;}
 .page{display:none;}
 .page.active{display:block;}
 
 /* ── STAT CARDS ── */
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:24px;}
-.stat-card{background:var(--white);border-radius:16px;padding:20px;box-shadow:var(--card-shadow);transition:.2s;border:1px solid transparent;}
-.stat-card:hover{box-shadow:var(--card-shadow-hover);border-color:var(--border);transform:translateY(-2px);}
-.stat-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
-.stat-icon-wrap{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;}
-.stat-badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:3px;}
-.stat-badge.up{background:var(--success-light);color:var(--success);}
-.stat-badge.down{background:var(--danger-light);color:var(--danger);}
-.stat-value{font-size:26px;font-weight:800;color:var(--dark);letter-spacing:-.5px;margin-bottom:4px;}
-.stat-label{font-size:12px;color:var(--muted);font-weight:400;}
-.stat-sub{font-size:11px;color:var(--muted);margin-top:8px;}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px;}
+.stat-card{background:#fff;border-radius:14px;padding:18px;box-shadow:var(--shadow);transition:.2s;border:1px solid transparent;}
+.stat-card:hover{box-shadow:var(--shadow-md);border-color:var(--border);transform:translateY(-2px);}
+.sc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;}
+.sc-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.sc-badge{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;}
+.sc-badge.up{background:var(--success-light);color:var(--success);}
+.sc-badge.down{background:var(--danger-light);color:var(--danger);}
+.sc-badge.neutral{background:var(--bg);color:var(--muted);}
+.sc-value{font-size:22px;font-weight:800;color:var(--dark);letter-spacing:-.5px;margin-bottom:3px;}
+.sc-label{font-size:11px;color:var(--muted);}
 
 /* ── GRID ── */
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;}
-.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:18px;}
-.grid-60-40{display:grid;grid-template-columns:1.6fr 1fr;gap:18px;margin-bottom:18px;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;}
+.grid-60{display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-bottom:16px;}
 
 /* ── CARD ── */
-.card{background:var(--white);border-radius:16px;box-shadow:var(--card-shadow);overflow:hidden;border:1px solid var(--border);}
-.card-header{padding:18px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
-.card-title{font-size:14px;font-weight:700;color:var(--dark);}
-.card-subtitle{font-size:11px;color:var(--muted);margin-top:2px;}
-.card-body{padding:20px;}
-.card-tabs{display:flex;gap:4px;}
-.tab-btn{padding:5px 12px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--muted);font-family:'Inter',sans-serif;transition:.15s;}
+.card{background:#fff;border-radius:14px;box-shadow:var(--shadow);overflow:hidden;border:1px solid var(--border);}
+.card-header{padding:16px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.card-title{font-size:13px;font-weight:700;color:var(--dark);}
+.card-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.card-body{padding:18px;}
+.card-tabs{display:flex;gap:3px;}
+.tab-btn{padding:4px 10px;border-radius:7px;font-size:11px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--muted);font-family:'Inter',sans-serif;transition:.15s;}
 .tab-btn.active{background:var(--primary-light);color:var(--primary);font-weight:600;}
 
 /* ── TABLE ── */
-.table-wrap{overflow-x:auto;}
-table{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12.5px;}
 thead tr{background:var(--bg);}
-th{padding:10px 16px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid var(--border);}
-td{padding:13px 16px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text);}
+th{padding:9px 14px;text-align:left;font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);}
+td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:middle;}
 tbody tr:last-child td{border-bottom:none;}
 tbody tr:hover{background:#fafbff;}
-.td-main{font-weight:600;color:var(--dark);}
-.td-sub{font-size:11px;color:var(--muted);margin-top:2px;}
 
 /* ── BADGES ── */
-.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:4px;}
-.badge::before{content:'';width:6px;height:6px;border-radius:50%;display:inline-block;}
-.badge-success{background:var(--success-light);color:#00a878;}.badge-success::before{background:var(--success);}
-.badge-danger{background:var(--danger-light);color:#e84c64;}.badge-danger::before{background:var(--danger);}
-.badge-warning{background:var(--warning-light);color:#e09920;}.badge-warning::before{background:var(--warning);}
-.badge-info{background:var(--info-light);color:#2880d8;}.badge-info::before{background:var(--info);}
-.badge-gray{background:#f1f3f9;color:var(--muted);}.badge-gray::before{background:var(--muted);}
-.badge-purple{background:var(--primary-light);color:var(--primary);}.badge-purple::before{background:var(--primary);}
-.badge-plain{background:var(--bg);color:var(--text);font-size:11px;padding:3px 8px;border-radius:6px;font-weight:500;}
-.badge-plain::before{display:none;}
-
-/* platform badges */
-.plat{padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600;color:#fff;display:inline-block;}
-.plat-instagram{background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366);}
-.plat-facebook{background:#1877f2;}
-.plat-tiktok{background:#010101;}
-.plat-linkedin{background:#0077b5;}
+.badge{padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:600;display:inline-flex;align-items:center;gap:3px;}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;display:inline-block;}
+.b-success{background:var(--success-light);color:#00a878;}.b-success::before{background:var(--success);}
+.b-danger{background:var(--danger-light);color:#e84c64;}.b-danger::before{background:var(--danger);}
+.b-warning{background:var(--warning-light);color:#e09920;}.b-warning::before{background:var(--warning);}
+.b-info{background:var(--info-light);color:#2880d8;}.b-info::before{background:var(--info);}
+.b-gray{background:#f1f3f9;color:var(--muted);}.b-gray::before{background:var(--muted);}
+.b-purple{background:var(--primary-light);color:var(--primary);}.b-purple::before{background:var(--primary);}
 
 /* ── PROGRESS ── */
-.progress-bar{background:var(--bg);border-radius:99px;height:6px;overflow:hidden;}
-.progress-fill{height:100%;border-radius:99px;transition:width .6s;}
+.prog{background:var(--bg);border-radius:99px;height:5px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:99px;transition:width .6s;}
 
 /* ── MODAL ── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(26,29,46,.5);z-index:999;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
 .modal-overlay.open{display:flex;}
-.modal{background:var(--white);border-radius:20px;width:520px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.18);}
-.modal-header{padding:22px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.modal-header h3{font-size:15px;font-weight:700;color:var(--dark);}
-.modal-close{background:var(--bg);border:none;width:30px;height:30px;border-radius:8px;cursor:pointer;color:var(--muted);font-size:16px;display:flex;align-items:center;justify-content:center;transition:.15s;}
+.modal{background:#fff;border-radius:18px;width:500px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.18);}
+.modal-lg{width:640px;}
+.modal-header{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-header h3{font-size:14px;font-weight:700;color:var(--dark);}
+.modal-close{background:var(--bg);border:none;width:28px;height:28px;border-radius:7px;cursor:pointer;color:var(--muted);font-size:15px;display:flex;align-items:center;justify-content:center;transition:.15s;}
 .modal-close:hover{background:var(--danger-light);color:var(--danger);}
-.modal-body{padding:24px;}
-.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;}
+.modal-body{padding:22px;}
+.modal-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
 
 /* ── FORM ── */
-.form-group{margin-bottom:16px;}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-label{font-size:12px;font-weight:600;color:var(--text);display:block;margin-bottom:6px;}
-input,select,textarea{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;color:var(--text);background:var(--white);outline:none;transition:border .18s;font-family:'Inter',sans-serif;}
-input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.1);}
-textarea{resize:vertical;min-height:80px;}
-
-/* ── TOAST ── */
-#toast{position:fixed;bottom:24px;right:24px;background:var(--dark);color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:500;transform:translateY(80px);opacity:0;transition:all .3s;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.2);display:flex;align-items:center;gap:8px;}
-#toast.show{transform:translateY(0);opacity:1;}
+.fg{margin-bottom:14px;}
+.fg label{font-size:11.5px;font-weight:600;color:var(--text);display:block;margin-bottom:5px;}
+.fg input,.fg select,.fg textarea{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;color:var(--text);background:#fff;outline:none;transition:border .18s;font-family:'Inter',sans-serif;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.1);}
+.fg textarea{resize:vertical;min-height:70px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
 
 /* ── MISC ── */
 .flex{display:flex;align-items:center;}
 .flex-between{display:flex;align-items:center;justify-content:space-between;}
-.gap-8{gap:8px;}
-.gap-12{gap:12px;}
-.mt-4{margin-top:4px;}
-.mt-8{margin-top:8px;}
-.mt-16{margin-top:16px;}
-.mt-20{margin-top:20px;}
-.fw-700{font-weight:700;}
-.fw-600{font-weight:600;}
-.fs-12{font-size:12px;}
-.fs-13{font-size:13px;}
-.fs-11{font-size:11px;}
-.color-muted{color:var(--muted);}
-.color-dark{color:var(--dark);}
-.color-primary{color:var(--primary);}
-.color-success{color:var(--success);}
-.color-danger{color:var(--danger);}
+.gap-6{gap:6px;}.gap-8{gap:8px;}.gap-12{gap:12px;}
+.mt-4{margin-top:4px;}.mt-8{margin-top:8px;}.mt-12{margin-top:12px;}.mt-16{margin-top:16px;}.mt-20{margin-top:20px;}
+.fw-7{font-weight:700;}.fw-6{font-weight:600;}
+.fs-11{font-size:11px;}.fs-12{font-size:12px;}.fs-13{font-size:13px;}
+.c-muted{color:var(--muted);}.c-dark{color:var(--dark);}.c-success{color:var(--success);}.c-danger{color:var(--danger);}.c-primary{color:var(--primary);}
 .text-right{text-align:right;}
-.action-btns{display:flex;gap:6px;}
-.filter-row{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
-.search-input-sm{position:relative;}
-.search-input-sm input{padding-left:34px;width:220px;}
-.search-input-sm::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;}
-.divider{height:1px;background:var(--border);margin:16px 0;}
-.empty-state{text-align:center;padding:48px 20px;color:var(--muted);}
-.empty-icon{font-size:44px;margin-bottom:12px;opacity:.4;}
-.section-title{font-size:15px;font-weight:700;color:var(--dark);margin-bottom:16px;}
+.act-btns{display:flex;gap:5px;}
+.filter-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.srch{position:relative;}
+.srch input{padding-left:30px;width:200px;}
+.srch::before{content:'🔍';position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:11px;}
+.empty{text-align:center;padding:40px 20px;color:var(--muted);}
+.empty-ico{font-size:40px;margin-bottom:10px;opacity:.4;}
+.section-head{font-size:15px;font-weight:700;color:var(--dark);margin-bottom:14px;}
+.loading-row td{text-align:center;color:var(--muted);padding:28px!important;font-style:italic;}
 
-/* ── LEGEND ── */
-.legend-list{list-style:none;}
-.legend-list li{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:13px;border-bottom:1px solid var(--border);}
-.legend-list li:last-child{border-bottom:none;}
-.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-.legend-label{flex:1;color:var(--muted);}
-.legend-val{font-weight:700;color:var(--dark);}
-.legend-pct{font-size:11px;color:var(--muted);margin-left:4px;}
-
-/* ── DONUT CENTER ── */
+/* ── DONUT ── */
 .donut-wrap{position:relative;display:flex;align-items:center;justify-content:center;}
 .donut-center{position:absolute;text-align:center;}
-.donut-center .dc-val{font-size:22px;font-weight:800;color:var(--dark);}
-.donut-center .dc-label{font-size:10px;color:var(--muted);}
+.dc-val{font-size:18px;font-weight:800;color:var(--dark);}
+.dc-lbl{font-size:9px;color:var(--muted);}
+.legend-list{list-style:none;}
+.legend-list li{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;border-bottom:1px solid var(--border);}
+.legend-list li:last-child{border-bottom:none;}
+.leg-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.leg-lbl{flex:1;color:var(--muted);}
+.leg-val{font-weight:700;color:var(--dark);}
 
-/* ── HEATMAP ── */
-.heatmap-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;}
-.heatmap-row{display:contents;}
-.heatmap-cell{height:20px;border-radius:4px;background:var(--bg);}
-.heatmap-cell.h1{background:rgba(108,99,255,.15);}
-.heatmap-cell.h2{background:rgba(108,99,255,.35);}
-.heatmap-cell.h3{background:rgba(108,99,255,.55);}
-.heatmap-cell.h4{background:rgba(108,99,255,.8);}
-.heatmap-cell.h5{background:#6c63ff;}
-.heatmap-label{font-size:10px;color:var(--muted);text-align:center;padding-bottom:2px;}
-.heatmap-row-label{font-size:10px;color:var(--muted);display:flex;align-items:center;padding-right:4px;}
+/* ── TOAST ── */
+#toast{position:fixed;bottom:22px;right:22px;background:var(--dark);color:#fff;padding:11px 18px;border-radius:11px;font-size:13px;font-weight:500;transform:translateY(80px);opacity:0;transition:.3s;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.2);display:flex;align-items:center;gap:8px;max-width:320px;}
+#toast.show{transform:translateY(0);opacity:1;}
 
-/* ── SUBSCRIPTION GRID ── */
-.sub-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
-.sub-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;box-shadow:var(--card-shadow);transition:.2s;}
-.sub-card:hover{box-shadow:var(--card-shadow-hover);transform:translateY(-2px);}
-.sub-card-top{display:flex;align-items:center;justify-content:space-between;}
-.sub-logo{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;}
-.sub-name{font-weight:700;font-size:14px;color:var(--dark);}
-.sub-plan{font-size:11px;color:var(--muted);}
-.sub-cost{font-size:20px;font-weight:800;color:var(--dark);letter-spacing:-.5px;}
-.sub-cost span{font-size:11px;font-weight:400;color:var(--muted);}
-.sub-renewal{font-size:11px;color:var(--muted);}
-.sub-renewal.soon{color:var(--warning);font-weight:600;}
-.sub-footer{display:flex;align-items:center;justify-content:space-between;}
-
-/* ── P&L TABLE ── */
-.pl-table tr.section-row td{background:var(--bg);font-weight:600;font-size:11px;text-transform:uppercase;color:var(--muted);letter-spacing:.6px;padding:8px 16px;}
-.pl-table tr.total-row td{font-weight:700;border-top:2px solid var(--border);}
-.pl-table tr.profit-row td{background:linear-gradient(135deg,rgba(108,99,255,.06),rgba(255,107,53,.04));font-weight:800;font-size:14px;color:var(--dark);}
+/* ── SETTINGS TABS ── */
+.stab-row{display:flex;gap:6px;margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:0;}
+.stab{padding:8px 16px;border:none;background:transparent;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;font-family:'Inter',sans-serif;border-bottom:2px solid transparent;margin-bottom:-1px;transition:.15s;}
+.stab.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:600;}
 
 /* ── RESPONSIVE ── */
 @media(max-width:960px){
   .stats-grid{grid-template-columns:1fr 1fr;}
-  .grid-2,.grid-60-40,.grid-3{grid-template-columns:1fr;}
-  .sub-grid{grid-template-columns:1fr 1fr;}
+  .grid-2,.grid-60,.grid-3{grid-template-columns:1fr;}
 }
 </style>
 </head>
 <body>
 
 
-<!-- ══════════════════ SIDEBAR ══════════════════ -->
-<aside class="sidebar">
-  <div class="sidebar-logo">
-    <div class="logo-icon">F</div>
-    <div class="logo-text">
-      <h1>FinTrack</h1>
-      <span>IT Finance Management</span>
-    </div>
-  </div>
-
-  <nav class="sidebar-nav">
-    <div class="nav-section-label">Main Menu</div>
-    <div class="nav-item active" onclick="navigate('dashboard')">
-      <div class="nav-icon">📊</div> Dashboard
-    </div>
-    <div class="nav-section-label">Finance</div>
-    <div class="nav-item" onclick="navigate('income')">
-      <div class="nav-icon">💵</div> Income & Invoice
-    </div>
-    <div class="nav-item" onclick="navigate('expense')">
-      <div class="nav-icon">💸</div> Expenses
-    </div>
-    <div class="nav-section-label">Projects</div>
-    <div class="nav-item" onclick="navigate('projects')">
-      <div class="nav-icon">📁</div> Project Profit
-    </div>
-    <div class="nav-section-label">General</div>
-    <div class="nav-item" onclick="navigate('subscriptions')">
-      <div class="nav-icon">🔧</div> Subscriptions
-    </div>
-    <div class="nav-item" onclick="navigate('reports')">
-      <div class="nav-icon">📈</div> Reports
-    </div>
-  </nav>
-
-  <div class="sidebar-upgrade">
-    <div class="upgrade-trophy">🏆</div>
-    <div class="upgrade-title">Upgrade ke Premium!</div>
-    <div class="upgrade-desc">Aktifkan fitur AI forecast, multi-entity & export otomatis.</div>
-    <button class="upgrade-btn">Upgrade Premium</button>
-  </div>
-
-  <div class="sidebar-footer">
-    <div class="user-card">
-      <div class="user-avatar">A</div>
-      <div>
-        <div class="user-name">Admin Keuangan</div>
-        <div class="user-role">Finance Manager</div>
+<!-- ═══════════════════ LOGIN ═══════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">N</div>
+      <div class="login-logo-text">
+        <h1>NexFinance</h1>
+        <span>IT Finance Management</span>
       </div>
-      <div class="user-more">⋯</div>
     </div>
+    <p class="login-title">Selamat Datang</p>
+    <p class="login-sub">Masuk ke akun Anda untuk melanjutkan</p>
+    <div class="login-err" id="login-err">Username atau password salah.</div>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="l-user" placeholder="admin" autocomplete="username"/>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="l-pass" placeholder="••••••••" autocomplete="current-password"/>
+    </div>
+    <button class="btn-login" id="btn-login" onclick="doLogin()">Masuk</button>
   </div>
-</aside>
+</div>
 
-<!-- ══════════════════ MAIN ══════════════════ -->
-<div class="main">
-  <div class="topbar">
-    <div class="topbar-left">
-      <h2 id="page-title">Dashboard</h2>
-      <p id="page-sub">Selamat datang kembali, Admin 👋</p>
+<!-- ═══════════════════ APP ═══════════════════ -->
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">N</div>
+      <div class="logo-text"><h1>NexFinance</h1><span>IT Finance Management</span></div>
     </div>
-    <div class="topbar-right">
-      <div class="search-bar">
-        <span>🔍</span>
-        <input type="text" placeholder="Cari transaksi, project..." />
-        <span style="font-size:11px;color:var(--muted);background:var(--border);padding:2px 6px;border-radius:4px;">⌘F</span>
-      </div>
-      <div class="topbar-icon-btn">✉️</div>
-      <div class="topbar-icon-btn">
-        🔔
-        <div class="notif-dot"></div>
-      </div>
-      <select class="period-select" id="period-select" onchange="changePeriod()">
-        <option value="jan">Januari 2026</option>
-        <option value="feb">Februari 2026</option>
-        <option value="mar">Maret 2026</option>
-        <option value="apr">April 2026</option>
-        <option value="may" selected>Mei 2026</option>
-      </select>
-      <button class="btn btn-primary" onclick="openAddModal()">＋ Tambah</button>
+    <nav class="sidebar-nav">
+      <div class="nav-label">Menu Utama</div>
+      <div class="nav-item active" onclick="nav('dashboard')"><div class="nav-icon">📊</div> Dashboard</div>
+      <div class="nav-label">Keuangan</div>
+      <div class="nav-item" onclick="nav('income')"><div class="nav-icon">💵</div> Invoice & Tagihan</div>
+      <div class="nav-item" onclick="nav('expense')"><div class="nav-icon">💸</div> Pengeluaran</div>
+      <div class="nav-item" onclick="nav('transactions')"><div class="nav-icon">🔄</div> Transaksi</div>
+      <div class="nav-label">Pengaturan</div>
+      <div class="nav-item" onclick="nav('settings')"><div class="nav-icon">⚙️</div> Pengaturan</div>
+    </nav>
+    <div class="sidebar-upgrade">
+      <div class="upgrade-t">🏆 NexFinance Pro</div>
+      <div class="upgrade-d">Fitur AI forecast & multi-entity</div>
+      <button class="upgrade-btn">Upgrade Sekarang</button>
     </div>
-  </div>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-av" id="sb-av">A</div>
+        <div>
+          <div class="user-name" id="sb-name">Admin</div>
+          <div class="user-role" id="sb-role">Finance Manager</div>
+        </div>
+        <span class="user-logout" title="Logout" onclick="doLogout()">⎋</span>
+      </div>
+    </div>
+  </aside>
 
-  <div class="content">
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2 id="page-title">Dashboard</h2>
+        <p id="page-sub">Overview keuangan perusahaan</p>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-primary" onclick="topbarAdd()">＋ Tambah</button>
+      </div>
+    </div>
 
+    <div class="content">
 
-<!-- ══════════════ PAGE: DASHBOARD ══════════════ -->
+<!-- ══════════ DASHBOARD ══════════ -->
 <div id="page-dashboard" class="page active">
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-card-top">
-        <div class="stat-icon-wrap" style="background:var(--success-light)">💵</div>
-        <div class="stat-badge up">▲ 12,4%</div>
-      </div>
-      <div class="stat-value" style="color:var(--success)">Rp 487,5 Jt</div>
-      <div class="stat-label">Total Revenue</div>
-      <div class="stat-sub">dari bulan lalu</div>
+      <div class="sc-top"><div class="sc-icon" style="background:var(--success-light)">💰</div><span class="sc-badge neutral" id="db-bal-lbl">Saldo</span></div>
+      <div class="sc-value c-success" id="db-balance">–</div>
+      <div class="sc-label">Saldo Bersih</div>
     </div>
     <div class="stat-card">
-      <div class="stat-card-top">
-        <div class="stat-icon-wrap" style="background:var(--danger-light)">💸</div>
-        <div class="stat-badge down">▲ 5,1%</div>
-      </div>
-      <div class="stat-value" style="color:var(--danger)">Rp 312,8 Jt</div>
-      <div class="stat-label">Total Expense</div>
-      <div class="stat-sub">dari bulan lalu</div>
+      <div class="sc-top"><div class="sc-icon" style="background:var(--info-light)">📈</div><span class="sc-badge up">Pemasukan</span></div>
+      <div class="sc-value c-primary" id="db-income">–</div>
+      <div class="sc-label">Total Pemasukan</div>
     </div>
     <div class="stat-card">
-      <div class="stat-card-top">
-        <div class="stat-icon-wrap" style="background:var(--primary-light)">📈</div>
-        <div class="stat-badge up">▲ 28,6%</div>
-      </div>
-      <div class="stat-value color-primary">Rp 174,7 Jt</div>
-      <div class="stat-label">Net Profit</div>
-      <div class="stat-sub">dari bulan lalu</div>
+      <div class="sc-top"><div class="sc-icon" style="background:var(--danger-light)">📉</div><span class="sc-badge down">Pengeluaran</span></div>
+      <div class="sc-value c-danger" id="db-expense">–</div>
+      <div class="sc-label">Total Pengeluaran</div>
     </div>
     <div class="stat-card">
-      <div class="stat-card-top">
-        <div class="stat-icon-wrap" style="background:var(--warning-light)">🧾</div>
-        <div class="stat-badge down">3 overdue</div>
-      </div>
-      <div class="stat-value" style="color:var(--warning)">12 Invoice</div>
-      <div class="stat-label">Outstanding</div>
-      <div class="stat-sub">perlu tindakan</div>
+      <div class="sc-top"><div class="sc-icon" style="background:var(--warning-light)">🧾</div><span class="sc-badge neutral" id="db-doc-lbl">Dok</span></div>
+      <div class="sc-value" style="color:var(--warning)" id="db-docs">–</div>
+      <div class="sc-label">Dokumen Pending</div>
     </div>
   </div>
 
-  <!-- Cash Flow + Expense Breakdown -->
-  <div class="grid-60-40">
+  <div class="grid-60">
     <div class="card">
       <div class="card-header">
-        <div>
-          <div class="card-title">Cash Flow Trend</div>
-          <div class="card-subtitle">Revenue vs Expense vs Net Profit</div>
-        </div>
-        <div class="card-tabs">
-          <button class="tab-btn">3 Bulan</button>
-          <button class="tab-btn active">6 Bulan</button>
-          <button class="tab-btn">1 Tahun</button>
-        </div>
+        <div><div class="card-title">Transaksi Terakhir</div><div class="card-sub">10 transaksi terbaru</div></div>
+        <button class="btn btn-outline btn-sm" onclick="nav('transactions')">Lihat Semua →</button>
       </div>
-      <div class="card-body">
-        <canvas id="cashflowChart" height="210"></canvas>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">Expense Breakdown</div>
-        <div class="card-tabs">
-          <button class="tab-btn active">Bulan Ini</button>
-          <button class="tab-btn">YTD</button>
-        </div>
-      </div>
-      <div class="card-body">
-        <div class="donut-wrap" style="height:160px">
-          <canvas id="expenseDonut"></canvas>
-          <div class="donut-center">
-            <div class="dc-val">Rp 313Jt</div>
-            <div class="dc-label">Total</div>
-          </div>
-        </div>
-        <ul class="legend-list mt-16">
-          <li><span class="legend-dot" style="background:#6c63ff"></span><span class="legend-label">Gaji & HR</span><span class="legend-val">Rp 198Jt</span><span class="legend-pct">63%</span></li>
-          <li><span class="legend-dot" style="background:#00c48c"></span><span class="legend-label">Operasional</span><span class="legend-val">Rp 54Jt</span><span class="legend-pct">17%</span></li>
-          <li><span class="legend-dot" style="background:#ffb547"></span><span class="legend-label">SaaS / Tools</span><span class="legend-val">Rp 32Jt</span><span class="legend-pct">10%</span></li>
-          <li><span class="legend-dot" style="background:#ff647c"></span><span class="legend-label">Marketing</span><span class="legend-val">Rp 18Jt</span><span class="legend-pct">6%</span></li>
-          <li><span class="legend-dot" style="background:#3d9ef8"></span><span class="legend-label">Lainnya</span><span class="legend-val">Rp 11Jt</span><span class="legend-pct">4%</span></li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <!-- Project + Invoice -->
-  <div class="grid-2">
-    <div class="card">
-      <div class="card-header">
-        <div>
-          <div class="card-title">Project Profitability</div>
-          <div class="card-subtitle">Budget usage per project</div>
-        </div>
-        <button class="btn btn-outline btn-sm" onclick="navigate('projects')">Lihat Semua →</button>
-      </div>
-      <div class="card-body" style="display:flex;flex-direction:column;gap:16px">
-        <div>
-          <div class="flex-between" style="margin-bottom:6px">
-            <div><div class="fw-600 fs-13 color-dark">SIPD Kabupaten Maju</div><div class="fs-11 color-muted">Budget Rp 80Jt</div></div>
-            <div class="stat-badge up">68%</div>
-          </div>
-          <div class="progress-bar"><div class="progress-fill" style="width:68%;background:var(--success)"></div></div>
-        </div>
-        <div>
-          <div class="flex-between" style="margin-bottom:6px">
-            <div><div class="fw-600 fs-13 color-dark">E-Commerce Platform X</div><div class="fs-11 color-muted">Budget Rp 168Jt</div></div>
-            <div class="stat-badge down">88%</div>
-          </div>
-          <div class="progress-bar"><div class="progress-fill" style="width:88%;background:var(--warning)"></div></div>
-        </div>
-        <div>
-          <div class="flex-between" style="margin-bottom:6px">
-            <div><div class="fw-600 fs-13 color-dark">Mobile Banking App</div><div class="fs-11 color-muted">Budget Rp 270Jt</div></div>
-            <div class="stat-badge up">45%</div>
-          </div>
-          <div class="progress-bar"><div class="progress-fill" style="width:45%;background:var(--primary)"></div></div>
-        </div>
-        <div>
-          <div class="flex-between" style="margin-bottom:6px">
-            <div><div class="fw-600 fs-13 color-dark">HR System PT Sejahtera</div><div class="fs-11 color-muted">Budget Rp 62Jt</div></div>
-            <div class="stat-badge down" style="background:var(--danger-light);color:var(--danger)">95%</div>
-          </div>
-          <div class="progress-bar"><div class="progress-fill" style="width:95%;background:var(--danger)"></div></div>
-        </div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">Invoice Terbaru</div>
-        <button class="btn btn-outline btn-sm" onclick="navigate('income')">Lihat Semua →</button>
-      </div>
-      <div class="table-wrap">
+      <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Invoice</th><th>Client</th><th>Amount</th><th>Status</th></tr></thead>
-          <tbody>
-            <tr><td class="td-main">#INV-052</td><td>PT Maju Bersama</td><td class="fw-600">Rp 45 Jt</td><td><span class="badge badge-warning">Pending</span></td></tr>
-            <tr><td class="td-main">#INV-051</td><td>CV Digital Nusa</td><td class="fw-600">Rp 28 Jt</td><td><span class="badge badge-success">Paid</span></td></tr>
-            <tr><td class="td-main">#INV-050</td><td>PT Sejahtera</td><td class="fw-600">Rp 85 Jt</td><td><span class="badge badge-danger">Overdue</span></td></tr>
-            <tr><td class="td-main">#INV-049</td><td>Startup Kreasi</td><td class="fw-600">Rp 15 Jt</td><td><span class="badge badge-success">Paid</span></td></tr>
-            <tr><td class="td-main">#INV-048</td><td>Bank Nusantara</td><td class="fw-600">Rp 120 Jt</td><td><span class="badge badge-info">Sent</span></td></tr>
-          </tbody>
+          <thead><tr><th>Judul</th><th>Kategori</th><th>Tanggal</th><th>Jumlah</th><th>Tipe</th></tr></thead>
+          <tbody id="db-txn-tbody"><tr class="loading-row"><td colspan="5">Memuat data...</td></tr></tbody>
         </table>
       </div>
     </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Pengeluaran per Kategori</div></div>
+      <div class="card-body">
+        <div class="donut-wrap" style="height:150px">
+          <canvas id="db-donut"></canvas>
+          <div class="donut-center"><div class="dc-val" id="db-donut-val">-</div><div class="dc-lbl">Total</div></div>
+        </div>
+        <ul class="legend-list mt-12" id="db-donut-legend"></ul>
+      </div>
+    </div>
   </div>
 
-  <!-- Revenue per Client + Optimal Posting (Heatmap) -->
-  <div class="grid-60-40">
+  <div class="grid-2">
     <div class="card">
       <div class="card-header">
-        <div>
-          <div class="card-title">Revenue per Client — Top 5</div>
-          <div class="card-subtitle">Mei 2026</div>
-        </div>
+        <div><div class="card-title">Invoice & Tagihan Terbaru</div></div>
+        <button class="btn btn-outline btn-sm" onclick="nav('income')">Lihat Semua →</button>
       </div>
-      <div class="card-body"><canvas id="revenueBar" height="130"></canvas></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Judul</th><th>Entitas</th><th>Jumlah</th><th>Status</th></tr></thead>
+          <tbody id="db-doc-tbody"><tr class="loading-row"><td colspan="4">Memuat...</td></tr></tbody>
+        </table>
+      </div>
     </div>
     <div class="card">
-      <div class="card-header">
-        <div class="card-title">Jadwal Invoice Jatuh Tempo</div>
-        <div class="card-tabs">
-          <button class="tab-btn active">Minggu Ini</button>
-          <button class="tab-btn">Bulan Ini</button>
-        </div>
-      </div>
-      <div class="card-body">
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:3px;margin-bottom:4px">
-            <span class="heatmap-label"></span>
-            <span class="heatmap-label">Sa</span><span class="heatmap-label">Su</span><span class="heatmap-label">Mo</span><span class="heatmap-label">Tu</span><span class="heatmap-label">We</span><span class="heatmap-label">Th</span><span class="heatmap-label">Fr</span>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:3px">
-            <span class="heatmap-label" style="font-size:9px;display:flex;align-items:center">12am</span>
-            <div class="heatmap-cell h1"></div><div class="heatmap-cell h0"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h3"></div><div class="heatmap-cell h1"></div><div class="heatmap-cell h0"></div><div class="heatmap-cell h2"></div>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:3px">
-            <span class="heatmap-label" style="font-size:9px;display:flex;align-items:center">6am</span>
-            <div class="heatmap-cell h2"></div><div class="heatmap-cell h1"></div><div class="heatmap-cell h4"></div><div class="heatmap-cell h5"></div><div class="heatmap-cell h3"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h3"></div>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:3px">
-            <span class="heatmap-label" style="font-size:9px;display:flex;align-items:center">12pm</span>
-            <div class="heatmap-cell h3"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h5"></div><div class="heatmap-cell h4"></div><div class="heatmap-cell h5"></div><div class="heatmap-cell h3"></div><div class="heatmap-cell h4"></div>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:3px">
-            <span class="heatmap-label" style="font-size:9px;display:flex;align-items:center">6pm</span>
-            <div class="heatmap-cell h1"></div><div class="heatmap-cell h0"></div><div class="heatmap-cell h3"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h4"></div><div class="heatmap-cell h1"></div><div class="heatmap-cell h2"></div>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:3px">
-            <span class="heatmap-label" style="font-size:9px;display:flex;align-items:center">9pm</span>
-            <div class="heatmap-cell h0"></div><div class="heatmap-cell h0"></div><div class="heatmap-cell h1"></div><div class="heatmap-cell h1"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h0"></div><div class="heatmap-cell h1"></div>
-          </div>
-        </div>
-        <div class="flex gap-8 mt-16" style="justify-content:flex-end">
-          <div class="flex gap-8 fs-11 color-muted">
-            <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:rgba(108,99,255,.15);display:inline-block;border-radius:2px"></span>Rendah</span>
-            <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:#6c63ff;display:inline-block;border-radius:2px"></span>Tinggi</span>
-          </div>
-        </div>
-      </div>
+      <div class="card-header"><div class="card-title">Arus Kas (6 Bulan)</div></div>
+      <div class="card-body"><canvas id="db-cashflow" height="180"></canvas></div>
     </div>
   </div>
 </div>
 
-
-<!-- ══════════════ PAGE: INCOME ══════════════ -->
+<!-- ══════════ INVOICE & TAGIHAN ══════════ -->
 <div id="page-income" class="page">
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-card-top"><div class="stat-icon-wrap" style="background:var(--success-light)">✅</div><div class="stat-badge up">8 lunas</div></div>
-      <div class="stat-value" style="color:var(--success)">Rp 312 Jt</div>
-      <div class="stat-label">Total Paid</div>
+      <div class="sc-top"><div class="sc-icon" style="background:var(--success-light)">✅</div><span class="sc-badge up" id="inv-paid-ct">–</span></div>
+      <div class="sc-value c-success" id="inv-paid-val">–</div>
+      <div class="sc-label">Total Lunas</div>
     </div>
     <div class="stat-card">
-      <div class="stat-card-top"><div class="stat-icon-wrap" style="background:var(--warning-light)">⏳</div><div class="stat-badge" style="background:var(--warning-light);color:var(--warning)">5 pending</div></div>
-      <div class="stat-value" style="color:var(--warning)">Rp 175 Jt</div>
-      <div class="stat-label">Menunggu Bayar</div>
+      <div class="sc-top"><div class="sc-icon" style="background:var(--warning-light)">⏳</div><span class="sc-badge neutral" id="inv-pend-ct">–</span></div>
+      <div class="sc-value" style="color:var(--warning)" id="inv-pend-val">–</div>
+      <div class="sc-label">Menunggu Bayar</div>
     </div>
     <div class="stat-card">
-      <div class="stat-card-top"><div class="stat-icon-wrap" style="background:var(--danger-light)">🚨</div><div class="stat-badge down">3 overdue</div></div>
-      <div class="stat-value" style="color:var(--danger)">Rp 85 Jt</div>
-      <div class="stat-label">Overdue</div>
+      <div class="sc-top"><div class="sc-icon" style="background:var(--danger-light)">🚨</div><span class="sc-badge down" id="inv-over-ct">–</span></div>
+      <div class="sc-value c-danger" id="inv-over-val">–</div>
+      <div class="sc-label">Overdue</div>
     </div>
     <div class="stat-card">
-      <div class="stat-card-top"><div class="stat-icon-wrap" style="background:var(--info-light)">📋</div><div class="stat-badge up">▲ 4</div></div>
-      <div class="stat-value color-primary">16 Invoice</div>
-      <div class="stat-label">Total Bulan Ini</div>
+      <div class="sc-top"><div class="sc-icon" style="background:var(--info-light)">📋</div><span class="sc-badge neutral" id="inv-tot-ct">–</span></div>
+      <div class="sc-value c-primary" id="inv-tot-val">–</div>
+      <div class="sc-label">Total Dokumen</div>
     </div>
   </div>
   <div class="card">
     <div class="card-header">
-      <div><div class="card-title">Daftar Invoice</div><div class="card-subtitle">Kelola semua invoice Anda</div></div>
-      <button class="btn btn-primary" onclick="openModal('modal-invoice')">＋ Buat Invoice</button>
+      <div><div class="card-title">Daftar Invoice & Tagihan</div><div class="card-sub">Semua dokumen keuangan</div></div>
+      <button class="btn btn-primary" onclick="openModal('modal-doc')">＋ Buat Dokumen</button>
     </div>
     <div class="card-body" style="padding-bottom:0">
       <div class="filter-row">
-        <div class="search-input-sm"><input type="text" placeholder="Cari invoice..." id="search-invoice" oninput="filterInvoice()"></div>
-        <select class="period-select" id="filter-invoice-status" onchange="filterInvoice()">
-          <option value="">Semua Status</option><option value="paid">Paid</option><option value="pending">Pending</option><option value="overdue">Overdue</option><option value="sent">Sent</option>
+        <div class="srch"><input type="text" id="inv-search" placeholder="Cari dokumen..." oninput="renderDocTable()"></div>
+        <select class="period-sel" id="inv-filter-type" onchange="renderDocTable()">
+          <option value="">Semua Tipe</option>
+          <option value="invoice">Invoice</option>
+          <option value="receipt">Kuitansi</option>
+          <option value="quotation">Penawaran</option>
+        </select>
+        <select class="period-sel" id="inv-filter-status" onchange="renderDocTable()">
+          <option value="">Semua Status</option>
+          <option value="pending">Pending</option>
+          <option value="paid">Lunas</option>
+          <option value="overdue">Overdue</option>
+          <option value="partial">Sebagian</option>
         </select>
       </div>
     </div>
-    <div class="table-wrap">
+    <div class="tbl-wrap">
       <table>
-        <thead><tr><th>No. Invoice</th><th>Client</th><th>Project</th><th>Tanggal</th><th>Jatuh Tempo</th><th>Amount</th><th>Status</th><th>Aksi</th></tr></thead>
-        <tbody id="invoice-tbody"></tbody>
+        <thead><tr><th>Judul</th><th>Entitas</th><th>Tipe</th><th>Jatuh Tempo</th><th>Jumlah</th><th>Terbayar</th><th>Status</th><th>Aksi</th></tr></thead>
+        <tbody id="doc-tbody"><tr class="loading-row"><td colspan="8">Memuat data...</td></tr></tbody>
       </table>
     </div>
   </div>
 </div>
 
-<!-- ══════════════ PAGE: EXPENSE ══════════════ -->
+<!-- ══════════ PENGELUARAN ══════════ -->
 <div id="page-expense" class="page">
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-card-top"><div class="stat-icon-wrap" style="background:var(--danger-light)">💰</div><div class="stat-badge down">▲ 5,1%</div></div>
-      <div class="stat-value" style="color:var(--danger)">Rp 312,8 Jt</div>
-      <div class="stat-label">Total Pengeluaran</div>
+      <div class="sc-top"><div class="sc-icon" style="background:var(--danger-light)">💰</div><span class="sc-badge down" id="exp-tot-ct">–</span></div>
+      <div class="sc-value c-danger" id="exp-tot-val">–</div>
+      <div class="sc-label">Total Pengeluaran</div>
     </div>
     <div class="stat-card">
-      <div class="stat-card-top"><div class="stat-icon-wrap" style="background:var(--warning-light)">⏰</div><div class="stat-badge" style="background:var(--warning-light);color:var(--warning)">7 pengajuan</div></div>
-      <div class="stat-value" style="color:var(--warning)">Rp 28,5 Jt</div>
-      <div class="stat-label">Pending Approval</div>
+      <div class="sc-top"><div class="sc-icon" style="background:var(--info-light)">📊</div><span class="sc-badge neutral" id="exp-cat-ct">–</span></div>
+      <div class="sc-value c-primary" id="exp-cat-val">–</div>
+      <div class="sc-label">Kategori Terbesar</div>
     </div>
     <div class="stat-card">
-      <div class="stat-card-top"><div class="stat-icon-wrap" style="background:var(--success-light)">✅</div><div class="stat-badge up">42 txn</div></div>
-      <div class="stat-value" style="color:var(--success)">Rp 284,3 Jt</div>
-      <div class="stat-label">Approved</div>
+      <div class="sc-top"><div class="sc-icon" style="background:var(--warning-light)">📅</div><span class="sc-badge neutral">bulan ini</span></div>
+      <div class="sc-value" style="color:var(--warning)" id="exp-month-val">–</div>
+      <div class="sc-label">Pengeluaran Bulan Ini</div>
     </div>
     <div class="stat-card">
-      <div class="stat-card-top"><div class="stat-icon-wrap" style="background:var(--primary-light)">📊</div><div class="stat-badge down">Target 60%</div></div>
-      <div class="stat-value color-primary">64,2%</div>
-      <div class="stat-label">Expense Ratio</div>
+      <div class="sc-top"><div class="sc-icon" style="background:var(--success-light)">🔢</div><span class="sc-badge up" id="exp-count-ct">–</span></div>
+      <div class="sc-value c-success" id="exp-count-val">–</div>
+      <div class="sc-label">Jumlah Transaksi</div>
     </div>
   </div>
   <div class="card">
     <div class="card-header">
-      <div><div class="card-title">Daftar Pengeluaran</div><div class="card-subtitle">Semua transaksi bulan ini</div></div>
-      <button class="btn btn-primary" onclick="openModal('modal-expense')">＋ Tambah Expense</button>
+      <div><div class="card-title">Daftar Pengeluaran</div><div class="card-sub">Semua transaksi keluar</div></div>
+      <button class="btn btn-primary" onclick="openModal('modal-txn');setTxnType('expense')">＋ Tambah Pengeluaran</button>
     </div>
     <div class="card-body" style="padding-bottom:0">
       <div class="filter-row">
-        <div class="search-input-sm"><input type="text" placeholder="Cari pengeluaran..." id="search-expense" oninput="filterExpense()"></div>
-        <select class="period-select" id="filter-expense-cat" onchange="filterExpense()">
-          <option value="">Semua Kategori</option><option>Gaji & HR</option><option>Operasional</option><option>SaaS / Tools</option><option>Marketing</option><option>Lainnya</option>
-        </select>
-        <select class="period-select" id="filter-expense-status" onchange="filterExpense()">
-          <option value="">Semua Status</option><option value="approved">Approved</option><option value="pending">Pending</option>
+        <div class="srch"><input type="text" id="exp-search" placeholder="Cari..." oninput="renderExpTable()"></div>
+        <select class="period-sel" id="exp-filter-cat" onchange="renderExpTable()">
+          <option value="">Semua Kategori</option>
         </select>
       </div>
     </div>
-    <div class="table-wrap">
+    <div class="tbl-wrap">
       <table>
-        <thead><tr><th>Tanggal</th><th>Deskripsi</th><th>Kategori</th><th>Vendor</th><th>Amount</th><th>Status</th><th>Aksi</th></tr></thead>
-        <tbody id="expense-tbody"></tbody>
+        <thead><tr><th>Judul</th><th>Kategori</th><th>Tanggal</th><th>Jumlah</th><th>Aksi</th></tr></thead>
+        <tbody id="exp-tbody"><tr class="loading-row"><td colspan="5">Memuat data...</td></tr></tbody>
       </table>
     </div>
   </div>
 </div>
 
-<!-- ══════════════ PAGE: PROJECTS ══════════════ -->
-<div id="page-projects" class="page">
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-card-top"><div class="stat-icon-wrap" style="background:var(--info-light)">📁</div><div class="stat-badge up">+2 baru</div></div>
-      <div class="stat-value" style="color:var(--info)">8 Aktif</div>
-      <div class="stat-label">Project Berjalan</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-card-top"><div class="stat-icon-wrap" style="background:var(--success-light)">💰</div><div class="stat-badge up">▲ 18% YoY</div></div>
-      <div class="stat-value" style="color:var(--success)">Rp 1,24 M</div>
-      <div class="stat-label">Total Contract Value</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-card-top"><div class="stat-icon-wrap" style="background:var(--primary-light)">📊</div><div class="stat-badge up">35,1%</div></div>
-      <div class="stat-value color-primary">Rp 435 Jt</div>
-      <div class="stat-label">Projected Profit</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-card-top"><div class="stat-icon-wrap" style="background:var(--warning-light)">⚠️</div><div class="stat-badge down">&gt;85% budget</div></div>
-      <div class="stat-value" style="color:var(--warning)">2 Project</div>
-      <div class="stat-label">Budget At Risk</div>
-    </div>
+<!-- ══════════ TRANSAKSI ══════════ -->
+<div id="page-transactions" class="page">
+  <div class="flex-between" style="margin-bottom:16px">
+    <h2 class="section-head" style="margin:0">Semua Transaksi</h2>
+    <button class="btn btn-primary" onclick="openModal('modal-txn')">＋ Tambah Transaksi</button>
   </div>
   <div class="card">
-    <div class="card-header">
-      <div><div class="card-title">Project Profitability Tracker</div><div class="card-subtitle">Budget vs actual cost per project</div></div>
-      <button class="btn btn-primary" onclick="openModal('modal-project')">＋ Tambah Project</button>
+    <div class="card-body" style="padding-bottom:0">
+      <div class="filter-row">
+        <div class="srch"><input type="text" id="txn-search" placeholder="Cari transaksi..." oninput="renderTxnTable()"></div>
+        <select class="period-sel" id="txn-filter-type" onchange="renderTxnTable()">
+          <option value="">Semua Tipe</option>
+          <option value="income">Pemasukan</option>
+          <option value="expense">Pengeluaran</option>
+        </select>
+        <select class="period-sel" id="txn-filter-cat" onchange="renderTxnTable()">
+          <option value="">Semua Kategori</option>
+        </select>
+      </div>
     </div>
-    <div class="table-wrap">
+    <div class="tbl-wrap">
       <table>
-        <thead><tr><th>Project</th><th>Client</th><th>Contract</th><th>Budget HPP</th><th>Actual Cost</th><th>Usage</th><th>Profit</th><th>Status</th><th></th></tr></thead>
-        <tbody id="project-tbody"></tbody>
+        <thead><tr><th>Judul</th><th>Kategori</th><th>Tanggal</th><th>Tipe</th><th>Jumlah</th><th>Aksi</th></tr></thead>
+        <tbody id="txn-tbody"><tr class="loading-row"><td colspan="6">Memuat data...</td></tr></tbody>
       </table>
     </div>
   </div>
-  <div class="grid-2 mt-20">
-    <div class="card">
-      <div class="card-header"><div class="card-title">Revenue vs Cost per Project</div></div>
-      <div class="card-body"><canvas id="projectRevenueChart" height="200"></canvas></div>
-    </div>
-    <div class="card">
-      <div class="card-header"><div class="card-title">Budget Utilization</div></div>
-      <div class="card-body" style="display:flex;flex-direction:column;gap:14px" id="project-cost-breakdown"></div>
-    </div>
-  </div>
 </div>
 
-<!-- ══════════════ PAGE: SUBSCRIPTIONS ══════════════ -->
-<div id="page-subscriptions" class="page">
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-card-top"><div class="stat-icon-wrap" style="background:var(--primary-light)">🔧</div><div class="stat-badge up">▲ 8,3%</div></div>
-      <div class="stat-value color-primary">Rp 48,2 Jt</div>
-      <div class="stat-label">Total SaaS / Bulan</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-card-top"><div class="stat-icon-wrap" style="background:var(--success-light)">✅</div><div class="stat-badge up">Semua aktif</div></div>
-      <div class="stat-value" style="color:var(--success)">18 Tools</div>
-      <div class="stat-label">Aktif Berlangganan</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-card-top"><div class="stat-icon-wrap" style="background:var(--warning-light)">⏰</div><div class="stat-badge down">Perlu aksi</div></div>
-      <div class="stat-value" style="color:var(--warning)">3 Tools</div>
-      <div class="stat-label">Renewal dalam 7 Hari</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-card-top"><div class="stat-icon-wrap" style="background:var(--info-light)">👥</div><div class="stat-badge up">per bulan</div></div>
-      <div class="stat-value" style="color:var(--info)">Rp 482 Rb</div>
-      <div class="stat-label">Avg Cost per Seat</div>
-    </div>
+<!-- ══════════ SETTINGS ══════════ -->
+<div id="page-settings" class="page">
+  <div class="stab-row">
+    <button class="stab active" onclick="showStab('company')">🏢 Profil Perusahaan</button>
+    <button class="stab" onclick="showStab('users')">👥 Manajemen User</button>
+    <button class="stab" onclick="showStab('categories')">🏷️ Kategori</button>
   </div>
-  <div class="flex-between" style="margin-bottom:18px">
-    <h3 class="section-title" style="margin:0">Daftar Langganan SaaS</h3>
-    <button class="btn btn-primary" onclick="openModal('modal-subscription')">＋ Tambah Langganan</button>
-  </div>
-  <div class="sub-grid" id="sub-grid"></div>
-</div>
 
-<!-- ══════════════ PAGE: REPORTS ══════════════ -->
-<div id="page-reports" class="page">
-  <div class="grid-2">
+  <!-- Company Profile -->
+  <div id="stab-company">
     <div class="card">
-      <div class="card-header">
-        <div><div class="card-title">Profit & Loss Statement</div><div class="card-subtitle">Januari — Mei 2026</div></div>
-        <button class="btn btn-outline btn-sm">⬇ Export PDF</button>
+      <div class="card-header"><div class="card-title">Profil Perusahaan</div></div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="fg"><label>Nama Perusahaan</label><input type="text" id="cp-name" placeholder="PT. ..."/></div>
+          <div class="fg"><label>Email</label><input type="email" id="cp-email" placeholder="finance@..."/></div>
+        </div>
+        <div class="fg"><label>Alamat</label><textarea id="cp-address" placeholder="Jl. ..."></textarea></div>
+        <div class="form-row-3">
+          <div class="fg"><label>Nama Bank</label><input type="text" id="cp-bank-name" placeholder="BCA"/></div>
+          <div class="fg"><label>No. Rekening</label><input type="text" id="cp-bank-acc" placeholder="1234567890"/></div>
+          <div class="fg"><label>Atas Nama</label><input type="text" id="cp-bank-holder" placeholder="PT. ..."/></div>
+        </div>
+        <div class="fg">
+          <label>Logo Perusahaan</label>
+          <input type="file" id="cp-logo-file" accept="image/*" onchange="previewLogo(this)"/>
+          <img id="cp-logo-preview" style="max-height:60px;margin-top:8px;display:none;border-radius:8px;"/>
+        </div>
+        <div style="margin-top:16px">
+          <button class="btn btn-primary" onclick="saveCompanyProfile()">💾 Simpan Profil</button>
+        </div>
       </div>
-      <div class="table-wrap">
-        <table class="pl-table">
-          <thead><tr><th>Keterangan</th><th class="text-right">Mei 2026</th><th class="text-right">YTD 2026</th></tr></thead>
-          <tbody>
-            <tr class="section-row"><td colspan="3">PENDAPATAN</td></tr>
-            <tr><td>Revenue Project</td><td class="text-right fw-600">Rp 420,0 Jt</td><td class="text-right">Rp 1.876,5 Jt</td></tr>
-            <tr><td>Revenue Maintenance</td><td class="text-right fw-600">Rp 45,5 Jt</td><td class="text-right">Rp 214,0 Jt</td></tr>
-            <tr><td>Revenue Lainnya</td><td class="text-right fw-600">Rp 22,0 Jt</td><td class="text-right">Rp 98,5 Jt</td></tr>
-            <tr class="total-row"><td>Total Pendapatan</td><td class="text-right" style="color:var(--success)">Rp 487,5 Jt</td><td class="text-right" style="color:var(--success)">Rp 2.189,0 Jt</td></tr>
-            <tr class="section-row"><td colspan="3">BEBAN OPERASIONAL</td></tr>
-            <tr><td>Gaji & Tunjangan</td><td class="text-right fw-600">Rp 198,0 Jt</td><td class="text-right">Rp 990,0 Jt</td></tr>
-            <tr><td>Sewa & Utilitas</td><td class="text-right fw-600">Rp 32,0 Jt</td><td class="text-right">Rp 160,0 Jt</td></tr>
-            <tr><td>SaaS & Tools</td><td class="text-right fw-600">Rp 48,2 Jt</td><td class="text-right">Rp 228,5 Jt</td></tr>
-            <tr><td>Marketing</td><td class="text-right fw-600">Rp 18,0 Jt</td><td class="text-right">Rp 82,0 Jt</td></tr>
-            <tr><td>Perjalanan Dinas</td><td class="text-right fw-600">Rp 8,6 Jt</td><td class="text-right">Rp 38,5 Jt</td></tr>
-            <tr><td>Lain-lain</td><td class="text-right fw-600">Rp 8,0 Jt</td><td class="text-right">Rp 34,0 Jt</td></tr>
-            <tr class="total-row"><td>Total Beban</td><td class="text-right" style="color:var(--danger)">Rp 312,8 Jt</td><td class="text-right" style="color:var(--danger)">Rp 1.533,0 Jt</td></tr>
-            <tr class="profit-row"><td>NET PROFIT</td><td class="text-right color-primary">Rp 174,7 Jt</td><td class="text-right color-primary">Rp 656,0 Jt</td></tr>
-            <tr><td style="color:var(--muted)">Profit Margin</td><td class="text-right fw-700 color-primary">35,8%</td><td class="text-right fw-700 color-primary">30,0%</td></tr>
-          </tbody>
+    </div>
+  </div>
+
+  <!-- Users -->
+  <div id="stab-users" style="display:none">
+    <div class="flex-between" style="margin-bottom:14px">
+      <h3 class="section-head" style="margin:0">Manajemen User</h3>
+      <button class="btn btn-primary" onclick="openModal('modal-user')">＋ Tambah User</button>
+    </div>
+    <div class="card">
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Username</th><th>Nama</th><th>Telepon</th><th>Role</th><th>Aksi</th></tr></thead>
+          <tbody id="users-tbody"><tr class="loading-row"><td colspan="5">Memuat...</td></tr></tbody>
         </table>
       </div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:18px">
-      <div class="card">
-        <div class="card-header"><div class="card-title">Revenue Trend</div><div class="card-tabs"><button class="tab-btn active">6 Bulan</button><button class="tab-btn">1 Tahun</button></div></div>
-        <div class="card-body"><canvas id="revTrendChart" height="150"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="card-header"><div class="card-title">Profit Margin Trend</div></div>
-        <div class="card-body"><canvas id="marginChart" height="130"></canvas></div>
-      </div>
-    </div>
   </div>
-  <div class="card">
-    <div class="card-header">
-      <div><div class="card-title">Expense Trend per Kategori</div><div class="card-subtitle">Stacked 5 bulan terakhir</div></div>
-      <button class="btn btn-outline btn-sm">⬇ Export Excel</button>
+
+  <!-- Categories -->
+  <div id="stab-categories" style="display:none">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Tambah Kategori</div></div>
+        <div class="card-body">
+          <div class="fg"><label>Nama Kategori</label><input type="text" id="new-cat" placeholder="Misal: Gaji, Cloud, Marketing..."/></div>
+          <button class="btn btn-primary" onclick="addCategory()">＋ Tambah</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Daftar Kategori</div></div>
+        <div class="card-body" id="cat-list" style="display:flex;flex-wrap:wrap;gap:8px;">
+          <span class="c-muted fs-12">Memuat...</span>
+        </div>
+      </div>
     </div>
-    <div class="card-body"><canvas id="expenseTrendChart" height="120"></canvas></div>
   </div>
 </div>
 
-  </div><!-- end .content -->
-</div><!-- end .main -->
+    </div><!-- end content -->
+  </div><!-- end main -->
+</div><!-- end app -->
 
-
-<!-- ══════════════ TOAST ══════════════ -->
+<!-- ════ TOAST ════ -->
 <div id="toast"></div>
 
-<!-- ══════════════ MODALS ══════════════ -->
-<div id="modal-invoice" class="modal-overlay">
+
+<!-- ════ MODAL: TRANSAKSI ════ -->
+<div id="modal-txn" class="modal-overlay">
   <div class="modal">
-    <div class="modal-header"><h3>🧾 Buat Invoice Baru</h3><button class="modal-close" onclick="closeModal('modal-invoice')">✕</button></div>
+    <div class="modal-header"><h3 id="modal-txn-title">Tambah Transaksi</h3><button class="modal-close" onclick="closeModal('modal-txn')">✕</button></div>
     <div class="modal-body">
+      <input type="hidden" id="txn-id"/>
+      <div class="fg"><label>Judul / Deskripsi</label><input type="text" id="txn-title" placeholder="Misal: Bayar AWS, Gaji Mei..."/></div>
       <div class="form-row">
-        <div class="form-group"><label>No. Invoice</label><input type="text" id="inv-no" placeholder="#INV-053"></div>
-        <div class="form-group"><label>Client</label><select id="inv-client"><option>PT Maju Bersama</option><option>CV Digital Nusa</option><option>PT Sejahtera</option><option>Startup Kreasi</option><option>Bank Nusantara</option></select></div>
+        <div class="fg"><label>Tipe</label>
+          <select id="txn-type">
+            <option value="income">💵 Pemasukan</option>
+            <option value="expense">💸 Pengeluaran</option>
+          </select>
+        </div>
+        <div class="fg"><label>Kategori</label>
+          <select id="txn-category"><option value="">— Pilih Kategori —</option></select>
+        </div>
       </div>
-      <div class="form-group"><label>Project / Layanan</label><input type="text" id="inv-project" placeholder="Pengembangan Website..."></div>
       <div class="form-row">
-        <div class="form-group"><label>Tanggal Invoice</label><input type="date" id="inv-date"></div>
-        <div class="form-group"><label>Jatuh Tempo</label><input type="date" id="inv-due"></div>
+        <div class="fg"><label>Jumlah (Rp)</label><input type="number" id="txn-amount" placeholder="0" min="0"/></div>
+        <div class="fg"><label>Tanggal</label><input type="date" id="txn-date"/></div>
       </div>
-      <div class="form-row">
-        <div class="form-group"><label>Amount (Rp)</label><input type="number" id="inv-amount" placeholder="50000000"></div>
-        <div class="form-group"><label>Status</label><select id="inv-status"><option value="sent">Sent</option><option value="pending">Pending</option><option value="paid">Paid</option></select></div>
-      </div>
-      <div class="form-group"><label>Catatan</label><textarea id="inv-note" placeholder="Catatan tambahan..."></textarea></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modal-invoice')">Batal</button>
-      <button class="btn btn-primary" onclick="saveInvoice()">💾 Simpan Invoice</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-txn')">Batal</button>
+      <button class="btn btn-primary" onclick="saveTxn()">💾 Simpan</button>
     </div>
   </div>
 </div>
 
-<div id="modal-expense" class="modal-overlay">
-  <div class="modal">
-    <div class="modal-header"><h3>💸 Tambah Pengeluaran</h3><button class="modal-close" onclick="closeModal('modal-expense')">✕</button></div>
+<!-- ════ MODAL: DOKUMEN ════ -->
+<div id="modal-doc" class="modal-overlay">
+  <div class="modal modal-lg">
+    <div class="modal-header"><h3 id="modal-doc-title">Buat Dokumen Baru</h3><button class="modal-close" onclick="closeModal('modal-doc')">✕</button></div>
     <div class="modal-body">
+      <input type="hidden" id="doc-id"/>
       <div class="form-row">
-        <div class="form-group"><label>Tanggal</label><input type="date" id="exp-date"></div>
-        <div class="form-group"><label>Kategori</label><select id="exp-cat"><option>Gaji & HR</option><option>Operasional</option><option>SaaS / Tools</option><option>Marketing</option><option>Perjalanan Dinas</option><option>Lainnya</option></select></div>
+        <div class="fg"><label>Judul / No. Dokumen</label><input type="text" id="doc-title" placeholder="INV-001 / TAG-001..."/></div>
+        <div class="fg"><label>Tipe Dokumen</label>
+          <select id="doc-type">
+            <option value="invoice">Invoice</option>
+            <option value="receipt">Kuitansi</option>
+            <option value="quotation">Penawaran Harga</option>
+          </select>
+        </div>
       </div>
-      <div class="form-group"><label>Deskripsi</label><input type="text" id="exp-desc" placeholder="Bayar langganan GitHub Teams..."></div>
       <div class="form-row">
-        <div class="form-group"><label>Vendor / Penerima</label><input type="text" id="exp-vendor" placeholder="GitHub Inc."></div>
-        <div class="form-group"><label>Amount (Rp)</label><input type="number" id="exp-amount" placeholder="5000000"></div>
+        <div class="fg"><label>Nama Klien / Entitas</label><input type="text" id="doc-entity" placeholder="PT. Klien Baru..."/></div>
+        <div class="fg"><label>Jatuh Tempo</label><input type="date" id="doc-due"/></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Metode</label><select id="exp-method"><option>Transfer Bank</option><option>Kartu Kredit</option><option>Kas</option><option>Auto Debit</option></select></div>
-        <div class="form-group"><label>Status</label><select id="exp-status"><option value="pending">Pending Approval</option><option value="approved">Approved</option></select></div>
+        <div class="fg"><label>Subtotal (Rp)</label><input type="number" id="doc-subtotal" placeholder="0" oninput="calcDocTotal()"/></div>
+        <div class="fg"><label>Diskon (Rp)</label><input type="number" id="doc-discount" placeholder="0" oninput="calcDocTotal()"/></div>
       </div>
+      <div class="form-row">
+        <div class="fg"><label>Pajak (%)</label><input type="number" id="doc-tax-pct" placeholder="0" min="0" max="100" oninput="calcDocTotal()"/></div>
+        <div class="fg"><label>Total Akhir (Rp)</label><input type="number" id="doc-amount" placeholder="0" readonly style="background:var(--bg);font-weight:700;"/></div>
+      </div>
+      <div class="fg"><label>Catatan</label><textarea id="doc-notes" placeholder="Keterangan tambahan..."></textarea></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modal-expense')">Batal</button>
-      <button class="btn btn-primary" onclick="saveExpense()">💾 Simpan</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-doc')">Batal</button>
+      <button class="btn btn-primary" onclick="saveDoc()">💾 Simpan Dokumen</button>
     </div>
   </div>
 </div>
 
-<div id="modal-project" class="modal-overlay">
+<!-- ════ MODAL: BAYAR DOKUMEN ════ -->
+<div id="modal-pay" class="modal-overlay">
   <div class="modal">
-    <div class="modal-header"><h3>📁 Tambah Project</h3><button class="modal-close" onclick="closeModal('modal-project')">✕</button></div>
+    <div class="modal-header"><h3>💳 Catat Pembayaran</h3><button class="modal-close" onclick="closeModal('modal-pay')">✕</button></div>
     <div class="modal-body">
-      <div class="form-group"><label>Nama Project</label><input type="text" id="proj-name" placeholder="Sistem Informasi Manajemen X"></div>
+      <input type="hidden" id="pay-doc-id"/>
+      <div class="fg"><label>Dokumen</label><input type="text" id="pay-doc-title" readonly style="background:var(--bg)"/></div>
       <div class="form-row">
-        <div class="form-group"><label>Client</label><input type="text" id="proj-client" placeholder="PT Klien Baru"></div>
-        <div class="form-group"><label>Status</label><select id="proj-status"><option value="active">Active</option><option value="completed">Completed</option><option value="on-hold">On Hold</option></select></div>
+        <div class="fg"><label>Total Tagihan (Rp)</label><input type="number" id="pay-total" readonly style="background:var(--bg)"/></div>
+        <div class="fg"><label>Jumlah Terbayar (Rp)</label><input type="number" id="pay-amount" placeholder="0" min="0"/></div>
       </div>
-      <div class="form-row">
-        <div class="form-group"><label>Contract Value (Rp)</label><input type="number" id="proj-contract" placeholder="200000000"></div>
-        <div class="form-group"><label>Budget HPP (Rp)</label><input type="number" id="proj-budget" placeholder="120000000"></div>
-      </div>
-      <div class="form-row">
-        <div class="form-group"><label>Tanggal Mulai</label><input type="date" id="proj-start"></div>
-        <div class="form-group"><label>Estimasi Selesai</label><input type="date" id="proj-end"></div>
+      <div class="fg"><label>Status Pembayaran</label>
+        <select id="pay-status">
+          <option value="partial">Sebagian (Partial)</option>
+          <option value="paid">Lunas</option>
+        </select>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modal-project')">Batal</button>
-      <button class="btn btn-primary" onclick="saveProject()">💾 Simpan</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-pay')">Batal</button>
+      <button class="btn btn-primary" onclick="savePay()">💾 Simpan Pembayaran</button>
     </div>
   </div>
 </div>
 
-<div id="modal-subscription" class="modal-overlay">
+<!-- ════ MODAL: USER ════ -->
+<div id="modal-user" class="modal-overlay">
   <div class="modal">
-    <div class="modal-header"><h3>🔧 Tambah Langganan</h3><button class="modal-close" onclick="closeModal('modal-subscription')">✕</button></div>
+    <div class="modal-header"><h3 id="modal-user-title">Tambah User</h3><button class="modal-close" onclick="closeModal('modal-user')">✕</button></div>
     <div class="modal-body">
+      <input type="hidden" id="user-id"/>
       <div class="form-row">
-        <div class="form-group"><label>Nama Tool / SaaS</label><input type="text" id="sub-name" placeholder="GitHub Teams"></div>
-        <div class="form-group"><label>Plan / Tier</label><input type="text" id="sub-plan" placeholder="Teams / Pro"></div>
+        <div class="fg"><label>Username</label><input type="text" id="user-username" placeholder="john_doe"/></div>
+        <div class="fg"><label>Password</label><input type="password" id="user-password" placeholder="min. 6 karakter"/></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Biaya / Bulan (Rp)</label><input type="number" id="sub-cost" placeholder="500000"></div>
-        <div class="form-group"><label>Jumlah Seat</label><input type="number" id="sub-seats" placeholder="10"></div>
+        <div class="fg"><label>Nama Lengkap</label><input type="text" id="user-name" placeholder="John Doe"/></div>
+        <div class="fg"><label>No. Telepon</label><input type="text" id="user-phone" placeholder="08..."/></div>
       </div>
-      <div class="form-row">
-        <div class="form-group"><label>Tanggal Renewal</label><input type="date" id="sub-renewal"></div>
-        <div class="form-group"><label>Kategori</label><select id="sub-cat"><option>Development</option><option>Design</option><option>Komunikasi</option><option>Infrastruktur</option><option>Manajemen</option><option>Lainnya</option></select></div>
+      <div class="fg"><label>Role</label>
+        <select id="user-role">
+          <option value="admin">Admin</option>
+          <option value="manager">Manager</option>
+          <option value="staff">Staff</option>
+        </select>
       </div>
-      <div class="form-group"><label>Emoji Icon</label><input type="text" id="sub-icon" placeholder="🔧" maxlength="2"></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modal-subscription')">Batal</button>
-      <button class="btn btn-primary" onclick="saveSubscription()">💾 Simpan</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-user')">Batal</button>
+      <button class="btn btn-primary" onclick="saveUser()">💾 Simpan User</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MODAL: KONFIRMASI HAPUS ════ -->
+<div id="modal-confirm" class="modal-overlay">
+  <div class="modal" style="width:360px">
+    <div class="modal-header"><h3>⚠️ Konfirmasi Hapus</h3><button class="modal-close" onclick="closeModal('modal-confirm')">✕</button></div>
+    <div class="modal-body">
+      <p id="confirm-msg" style="color:var(--text);font-size:14px;line-height:1.5"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-confirm')">Batal</button>
+      <button class="btn btn-danger" id="confirm-ok-btn">Hapus</button>
     </div>
   </div>
 </div>
 
 
-<script>
-// ══════════════ DATA ══════════════
-const invoiceData = [
-  {no:'#INV-052',client:'PT Maju Bersama',project:'E-Commerce Platform X',date:'2026-05-10',due:'2026-05-25',amount:45000000,status:'pending'},
-  {no:'#INV-051',client:'CV Digital Nusa',project:'Company Profile',date:'2026-05-08',due:'2026-05-22',amount:28000000,status:'paid'},
-  {no:'#INV-050',client:'PT Sejahtera',project:'HR System',date:'2026-04-15',due:'2026-04-30',amount:85000000,status:'overdue'},
-  {no:'#INV-049',client:'Startup Kreasi',project:'Landing Page',date:'2026-05-01',due:'2026-05-15',amount:15000000,status:'paid'},
-  {no:'#INV-048',client:'Bank Nusantara',project:'Mobile Banking App',date:'2026-05-05',due:'2026-05-20',amount:120000000,status:'sent'},
-  {no:'#INV-047',client:'PT Maju Bersama',project:'Maintenance Q2',date:'2026-04-30',due:'2026-05-14',amount:22500000,status:'paid'},
-  {no:'#INV-046',client:'CV Digital Nusa',project:'SEO Optimization',date:'2026-04-20',due:'2026-05-05',amount:8500000,status:'paid'},
-];
-const expenseData = [
-  {date:'2026-05-15',desc:'Gaji Karyawan — Mei 2026',category:'Gaji & HR',vendor:'Internal Payroll',amount:198000000,status:'approved'},
-  {date:'2026-05-14',desc:'AWS EC2 + S3 Storage',category:'SaaS / Tools',vendor:'Amazon Web Services',amount:12500000,status:'approved'},
-  {date:'2026-05-13',desc:'Sewa Kantor Mei 2026',category:'Operasional',vendor:'PT Properti Indah',amount:28000000,status:'approved'},
-  {date:'2026-05-12',desc:'Google Workspace — 50 seats',category:'SaaS / Tools',vendor:'Google LLC',amount:7500000,status:'approved'},
-  {date:'2026-05-11',desc:'Facebook & Instagram Ads',category:'Marketing',vendor:'Meta Platforms',amount:8000000,status:'approved'},
-  {date:'2026-05-10',desc:'Reimburse Perjalanan Dinas',category:'Operasional',vendor:'Budi Santoso',amount:3500000,status:'pending'},
-  {date:'2026-05-09',desc:'Figma Professional — 15 seats',category:'SaaS / Tools',vendor:'Figma Inc.',amount:4800000,status:'approved'},
-  {date:'2026-05-08',desc:'Bonus Karyawan Q1 2026',category:'Gaji & HR',vendor:'Internal Payroll',amount:25000000,status:'pending'},
-  {date:'2026-05-07',desc:'GitHub Teams — 20 seats',category:'SaaS / Tools',vendor:'GitHub Inc.',amount:3200000,status:'approved'},
-];
-const projectData = [
-  {name:'SIPD Kabupaten Maju',client:'Pemkab Maju',contract:120000000,budget:80000000,actual:54400000,status:'active'},
-  {name:'E-Commerce Platform X',client:'CV Digital Nusa',contract:280000000,budget:168000000,actual:147840000,status:'active'},
-  {name:'Mobile Banking App',client:'Bank Nusantara',contract:450000000,budget:270000000,actual:121500000,status:'active'},
-  {name:'HR System PT Sejahtera',client:'PT Sejahtera',contract:98000000,budget:62000000,actual:58900000,status:'active'},
-  {name:'ERP Module Finance',client:'PT Maju Bersama',contract:175000000,budget:105000000,actual:42000000,status:'active'},
-  {name:'Company Profile',client:'Startup Kreasi',contract:22000000,budget:13200000,actual:13200000,status:'completed'},
-];
-const subscriptionData = [
-  {name:'AWS',plan:'Pay As You Go',cost:12500000,seats:0,renewal:'2026-06-01',cat:'Infrastruktur',icon:'☁️',daysLeft:17},
-  {name:'GitHub',plan:'Teams · 20 users',cost:3200000,seats:20,renewal:'2026-05-18',cat:'Development',icon:'🐙',daysLeft:3},
-  {name:'Figma',plan:'Professional · 15 seats',cost:4800000,seats:15,renewal:'2026-06-10',cat:'Design',icon:'🎨',daysLeft:26},
-  {name:'Google Workspace',plan:'Business Standard',cost:7500000,seats:50,renewal:'2026-05-20',cat:'Komunikasi',icon:'📧',daysLeft:5},
-  {name:'Slack',plan:'Pro · 40 users',cost:6400000,seats:40,renewal:'2026-06-15',cat:'Komunikasi',icon:'💬',daysLeft:31},
-  {name:'Notion',plan:'Team · 25 seats',cost:2250000,seats:25,renewal:'2026-06-05',cat:'Manajemen',icon:'📝',daysLeft:21},
-  {name:'Jira',plan:'Standard · 30 users',cost:3600000,seats:30,renewal:'2026-05-22',cat:'Manajemen',icon:'📋',daysLeft:7},
-  {name:'Sentry',plan:'Team',cost:2800000,seats:0,renewal:'2026-06-08',cat:'Development',icon:'🛡️',daysLeft:24},
-  {name:'Vercel',plan:'Pro Team',cost:2200000,seats:0,renewal:'2026-06-12',cat:'Infrastruktur',icon:'⚡',daysLeft:28},
-];
-
-// ══════════════ NAVIGATION ══════════════
-const pagesMeta = {
-  dashboard:{title:'Dashboard',sub:'Selamat datang kembali, Admin 👋'},
-  income:{title:'Income & Invoice',sub:'Kelola pendapatan dan invoice klien'},
-  expense:{title:'Expenses',sub:'Manajemen pengeluaran & approval'},
-  projects:{title:'Project Profitability',sub:'Tracking biaya & profit per project'},
-  subscriptions:{title:'Subscriptions',sub:'SaaS & tools yang aktif berlangganan'},
-  reports:{title:'Reports & Analytics',sub:'Laporan keuangan lengkap perusahaan'},
-};
-function navigate(page){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('page-'+page).classList.add('active');
-  document.querySelector(`.nav-item[onclick="navigate('${page}')"]`).classList.add('active');
-  document.getElementById('page-title').textContent=pagesMeta[page].title;
-  document.getElementById('page-sub').textContent=pagesMeta[page].sub;
-  if(page==='income') renderInvoiceTable(invoiceData);
-  if(page==='expense') renderExpenseTable(expenseData);
-  if(page==='projects'){renderProjectTable();renderProjectCostBreakdown();setTimeout(initProjectChart,60);}
-  if(page==='subscriptions') renderSubscriptions();
-  if(page==='reports') setTimeout(initReportCharts,60);
-}
-function openAddModal(){
-  const p=document.querySelector('.page.active').id.replace('page-','');
-  const map={dashboard:'modal-invoice',income:'modal-invoice',expense:'modal-expense',projects:'modal-project',subscriptions:'modal-subscription'};
-  if(map[p]) openModal(map[p]);
-}
-
-// ══════════════ MODAL ══════════════
-function openModal(id){document.getElementById(id).classList.add('open');}
-function closeModal(id){document.getElementById(id).classList.remove('open');}
-document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
-
-// ══════════════ TOAST ══════════════
-function toast(msg,icon='✅'){
-  const t=document.getElementById('toast');
-  t.innerHTML=`<span>${icon}</span> ${msg}`;
-  t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2800);
-}
-
-// ══════════════ FORMATTERS ══════════════
-function rupiah(n){return 'Rp '+Number(n).toLocaleString('id-ID');}
-function fmtDate(d){if(!d)return'—';return new Date(d).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'});}
-function statusBadge(s){
-  const map={paid:'badge-success',pending:'badge-warning',overdue:'badge-danger',sent:'badge-info',approved:'badge-success',rejected:'badge-danger',active:'badge-info',completed:'badge-success','on-hold':'badge-gray'};
-  const lbl={paid:'Paid',pending:'Pending',overdue:'Overdue',sent:'Sent',approved:'Approved',rejected:'Rejected',active:'Active',completed:'Completed','on-hold':'On Hold'};
-  return `<span class="badge ${map[s]||'badge-gray'}">${lbl[s]||s}</span>`;
-}
-
-// ══════════════ INVOICE ══════════════
-function renderInvoiceTable(data){
-  const tb=document.getElementById('invoice-tbody');
-  if(!data.length){tb.innerHTML=`<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📋</div><p>Belum ada invoice</p></div></td></tr>`;return;}
-  tb.innerHTML=data.map(i=>`<tr>
-    <td class="td-main">${i.no}</td>
-    <td><div class="fw-600">${i.client}</div></td>
-    <td><div class="fs-12 color-muted">${i.project}</div></td>
-    <td class="fs-12 color-muted">${fmtDate(i.date)}</td>
-    <td class="fs-12 color-muted">${fmtDate(i.due)}</td>
-    <td class="fw-700 color-dark">${rupiah(i.amount)}</td>
-    <td>${statusBadge(i.status)}</td>
-    <td><div class="action-btns">
-      <button class="btn btn-outline btn-sm">👁</button>
-      <button class="btn btn-outline btn-sm">✏️</button>
-    </div></td>
-  </tr>`).join('');
-}
-function filterInvoice(){
-  const q=document.getElementById('search-invoice').value.toLowerCase();
-  const s=document.getElementById('filter-invoice-status').value;
-  renderInvoiceTable(invoiceData.filter(i=>(!q||i.client.toLowerCase().includes(q)||i.no.toLowerCase().includes(q))&&(!s||i.status===s)));
-}
-function saveInvoice(){
-  const no=document.getElementById('inv-no').value||`#INV-${53+invoiceData.length}`;
-  const client=document.getElementById('inv-client').value;
-  const project=document.getElementById('inv-project').value;
-  const date=document.getElementById('inv-date').value;
-  const due=document.getElementById('inv-due').value;
-  const amount=parseFloat(document.getElementById('inv-amount').value)||0;
-  const status=document.getElementById('inv-status').value;
-  if(!project||!amount){toast('Mohon lengkapi data invoice','⚠️');return;}
-  invoiceData.unshift({no,client,project,date,due,amount,status});
-  renderInvoiceTable(invoiceData);
-  closeModal('modal-invoice');
-  toast('Invoice berhasil disimpan!');
-  ['inv-no','inv-project','inv-amount','inv-note'].forEach(id=>document.getElementById(id).value='');
-}
-
-// ══════════════ EXPENSE ══════════════
-function renderExpenseTable(data){
-  const tb=document.getElementById('expense-tbody');
-  if(!data.length){tb.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">💸</div><p>Belum ada pengeluaran</p></div></td></tr>`;return;}
-  tb.innerHTML=data.map(e=>`<tr>
-    <td class="fs-12 color-muted">${fmtDate(e.date)}</td>
-    <td><div class="fw-600 color-dark">${e.desc}</div></td>
-    <td><span class="badge badge-purple">${e.category}</span></td>
-    <td class="fs-12 color-muted">${e.vendor}</td>
-    <td class="fw-700" style="color:var(--danger)">${rupiah(e.amount)}</td>
-    <td>${statusBadge(e.status)}</td>
-    <td><div class="action-btns">
-      ${e.status==='pending'?`<button class="btn btn-success btn-sm" onclick="approveExp(this)">✔ Approve</button>`:''}
-      <button class="btn btn-outline btn-sm">✏️</button>
-    </div></td>
-  </tr>`).join('');
-}
-function approveExp(btn){
-  const row=btn.closest('tr');
-  row.querySelector('td:nth-child(6)').innerHTML=statusBadge('approved');
-  btn.remove();
-  toast('Expense berhasil diapprove!');
-}
-function filterExpense(){
-  const q=document.getElementById('search-expense').value.toLowerCase();
-  const cat=document.getElementById('filter-expense-cat').value;
-  const st=document.getElementById('filter-expense-status').value;
-  renderExpenseTable(expenseData.filter(e=>(!q||e.desc.toLowerCase().includes(q)||e.vendor.toLowerCase().includes(q))&&(!cat||e.category===cat)&&(!st||e.status===st)));
-}
-function saveExpense(){
-  const date=document.getElementById('exp-date').value;
-  const desc=document.getElementById('exp-desc').value;
-  const category=document.getElementById('exp-cat').value;
-  const vendor=document.getElementById('exp-vendor').value;
-  const amount=parseFloat(document.getElementById('exp-amount').value)||0;
-  const status=document.getElementById('exp-status').value;
-  if(!desc||!amount){toast('Mohon lengkapi data expense','⚠️');return;}
-  expenseData.unshift({date,desc,category,vendor,amount,status});
-  renderExpenseTable(expenseData);
-  closeModal('modal-expense');
-  toast('Expense berhasil ditambahkan!');
-  ['exp-date','exp-desc','exp-vendor','exp-amount'].forEach(id=>document.getElementById(id).value='');
-}
-
-// ══════════════ PROJECT ══════════════
-function renderProjectTable(){
-  document.getElementById('project-tbody').innerHTML=projectData.map(p=>{
-    const pct=Math.round((p.actual/p.budget)*100);
-    const profit=p.contract-p.actual;
-    const profitPct=Math.round((profit/p.contract)*100);
-    const color=pct>=90?'var(--danger)':pct>=75?'var(--warning)':'var(--success)';
-    return`<tr>
-      <td><div class="fw-600 color-dark">${p.name}</div></td>
-      <td class="fs-12 color-muted">${p.client}</td>
-      <td class="fw-600">${rupiah(p.contract)}</td>
-      <td>${rupiah(p.budget)}</td>
-      <td>${rupiah(p.actual)}</td>
-      <td style="min-width:110px">
-        <div class="flex-between" style="margin-bottom:4px"><span class="fs-12 fw-600" style="color:${color}">${pct}%</span></div>
-        <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(pct,100)}%;background:${color}"></div></div>
-      </td>
-      <td class="fw-700" style="color:${profit>0?'var(--success)':'var(--danger)'}">${rupiah(profit)}<span class="fs-11 color-muted"> (${profitPct}%)</span></td>
-      <td>${statusBadge(p.status)}</td>
-      <td><button class="btn btn-outline btn-sm">👁</button></td>
-    </tr>`;
-  }).join('');
-}
-function renderProjectCostBreakdown(){
-  document.getElementById('project-cost-breakdown').innerHTML=projectData.map(p=>{
-    const pct=Math.round((p.actual/p.budget)*100);
-    const color=pct>=90?'var(--danger)':pct>=75?'var(--warning)':'var(--success)';
-    return`<div>
-      <div class="flex-between" style="margin-bottom:5px">
-        <span class="fs-13 fw-600 color-dark">${p.name.substring(0,22)}${p.name.length>22?'…':''}</span>
-        <span class="fs-12 fw-700" style="color:${color}">${pct}%</span>
-      </div>
-      <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(pct,100)}%;background:${color}"></div></div>
-    </div>`;
-  }).join('');
-}
-function saveProject(){
-  const name=document.getElementById('proj-name').value;
-  const client=document.getElementById('proj-client').value;
-  const contract=parseFloat(document.getElementById('proj-contract').value)||0;
-  const budget=parseFloat(document.getElementById('proj-budget').value)||0;
-  const status=document.getElementById('proj-status').value;
-  if(!name||!contract){toast('Mohon lengkapi data project','⚠️');return;}
-  projectData.unshift({name,client,contract,budget,actual:0,status});
-  renderProjectTable();renderProjectCostBreakdown();
-  closeModal('modal-project');
-  toast('Project berhasil ditambahkan!');
-  ['proj-name','proj-client','proj-contract','proj-budget'].forEach(id=>document.getElementById(id).value='');
-}
-
-// ══════════════ SUBSCRIPTIONS ══════════════
-function renderSubscriptions(){
-  document.getElementById('sub-grid').innerHTML=subscriptionData.map(s=>`
-    <div class="sub-card">
-      <div class="sub-card-top">
-        <div class="sub-logo" style="background:var(--primary-light)">${s.icon}</div>
-        ${s.daysLeft<=7?'<span class="badge badge-warning">Renewal Soon</span>':'<span class="badge badge-success">Active</span>'}
-      </div>
-      <div>
-        <div class="sub-name">${s.name}</div>
-        <div class="sub-plan">${s.plan}</div>
-      </div>
-      <div class="sub-cost">${rupiah(s.cost)}<span>/bulan</span></div>
-      <div class="sub-footer">
-        <div class="sub-renewal ${s.daysLeft<=7?'soon':''}">🔄 ${fmtDate(s.renewal)}</div>
-        ${s.seats?`<span class="badge-plain">${s.seats} seats</span>`:''}
-      </div>
-      <div class="action-btns">
-        <button class="btn btn-outline btn-sm" style="flex:1">✏️ Edit</button>
-        <button class="btn btn-danger-soft btn-sm" style="flex:1">🗑</button>
-      </div>
-    </div>`).join('');
-}
-function saveSubscription(){
-  const name=document.getElementById('sub-name').value;
-  const plan=document.getElementById('sub-plan').value;
-  const cost=parseFloat(document.getElementById('sub-cost').value)||0;
-  const seats=parseInt(document.getElementById('sub-seats').value)||0;
-  const renewal=document.getElementById('sub-renewal').value;
-  const cat=document.getElementById('sub-cat').value;
-  const icon=document.getElementById('sub-icon').value||'🔧';
-  if(!name||!cost){toast('Mohon isi nama dan biaya','⚠️');return;}
-  const daysLeft=Math.ceil((new Date(renewal)-new Date())/86400000);
-  subscriptionData.push({name,plan,cost,seats,renewal,cat,icon,daysLeft});
-  renderSubscriptions();
-  closeModal('modal-subscription');
-  toast('Langganan berhasil ditambahkan!');
-  ['sub-name','sub-plan','sub-cost','sub-seats','sub-renewal','sub-icon'].forEach(id=>document.getElementById(id).value='');
-}
-
-function changePeriod(){toast('Data diperbarui untuk periode yang dipilih 📅','📅');}
-
-// ══════════════ CHARTS ══════════════
-const COLORS={primary:'#6c63ff',accent:'#ff6b35',success:'#00c48c',danger:'#ff647c',warning:'#ffb547',info:'#3d9ef8',muted:'#8a94a6'};
-
-function initDashboardCharts(){
-  const months=['Des','Jan','Feb','Mar','Apr','Mei'];
-  // Cash Flow
-  new Chart(document.getElementById('cashflowChart'),{
-    type:'bar',
-    data:{labels:months,datasets:[
-      {label:'Revenue',data:[380,412,355,440,435,487.5],backgroundColor:'rgba(0,196,140,.75)',borderRadius:6,borderSkipped:false},
-      {label:'Expense',data:[295,318,280,315,297,312.8],backgroundColor:'rgba(255,100,124,.7)',borderRadius:6,borderSkipped:false},
-      {label:'Net Profit',type:'line',data:[85,94,75,125,138,174.7],borderColor:COLORS.primary,backgroundColor:'rgba(108,99,255,.08)',tension:.4,fill:true,pointRadius:5,pointBackgroundColor:COLORS.primary,pointBorderColor:'#fff',pointBorderWidth:2,yAxisID:'y1'}
-    ]},
-    options:{responsive:true,interaction:{mode:'index'},plugins:{legend:{position:'top',labels:{usePointStyle:true,padding:16,font:{size:12}}}},scales:{
-      y:{grid:{color:'#f0f1f7'},ticks:{font:{size:11}},title:{display:true,text:'Juta Rp',font:{size:11},color:COLORS.muted}},
-      y1:{position:'right',grid:{display:false},ticks:{font:{size:11}},title:{display:true,text:'Profit (Jt)',font:{size:11},color:COLORS.muted}}
-    }}
-  });
-  // Expense Donut
-  new Chart(document.getElementById('expenseDonut'),{
-    type:'doughnut',
-    data:{labels:['Gaji & HR','Operasional','SaaS / Tools','Marketing','Lainnya'],
-      datasets:[{data:[198,54,32,18,11],backgroundColor:[COLORS.primary,COLORS.success,COLORS.warning,COLORS.danger,COLORS.info],borderWidth:0,hoverOffset:6}]},
-    options:{responsive:true,cutout:'72%',plugins:{legend:{display:false}}}
-  });
-  // Revenue Bar
-  new Chart(document.getElementById('revenueBar'),{
-    type:'bar',
-    data:{labels:['Bank Nusantara','PT Maju Bersama','PT Sejahtera','CV Digital Nusa','Startup Kreasi'],
-      datasets:[{label:'Revenue (Jt Rp)',data:[120,67.5,120,36.5,15],backgroundColor:[COLORS.primary,COLORS.success,COLORS.info,COLORS.warning,'#c084fc'],borderRadius:8,borderSkipped:false}]},
-    options:{responsive:true,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:'#f0f1f7'}},y:{grid:{display:false}}}}
-  });
-}
-
-let projectChartInst=null;
-function initProjectChart(){
-  const ctx=document.getElementById('projectRevenueChart');
-  if(!ctx)return;
-  if(projectChartInst)projectChartInst.destroy();
-  projectChartInst=new Chart(ctx,{
-    type:'bar',
-    data:{
-      labels:projectData.map(p=>p.name.substring(0,14)+'…'),
-      datasets:[
-        {label:'Contract',data:projectData.map(p=>p.contract/1e6),backgroundColor:'rgba(108,99,255,.75)',borderRadius:6,borderSkipped:false},
-        {label:'Actual Cost',data:projectData.map(p=>p.actual/1e6),backgroundColor:'rgba(255,100,124,.65)',borderRadius:6,borderSkipped:false},
-      ]
-    },
-    options:{responsive:true,plugins:{legend:{position:'top',labels:{usePointStyle:true,padding:14,font:{size:12}}}},scales:{x:{ticks:{font:{size:10}},grid:{display:false}},y:{title:{display:true,text:'Juta Rp'},grid:{color:'#f0f1f7'}}}}
-  });
-}
-
-let reportChartsInited=false;
-function initReportCharts(){
-  if(reportChartsInited)return;
-  reportChartsInited=true;
-  const months=['Jan','Feb','Mar','Apr','Mei'];
-  new Chart(document.getElementById('revTrendChart'),{
-    type:'line',
-    data:{labels:months,datasets:[{label:'Revenue (Jt)',data:[412,355,440,435,487.5],borderColor:COLORS.success,backgroundColor:'rgba(0,196,140,.1)',tension:.4,fill:true,pointRadius:5,pointBackgroundColor:COLORS.success,pointBorderColor:'#fff',pointBorderWidth:2}]},
-    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{grid:{color:'#f0f1f7'}},x:{grid:{display:false}}}}
-  });
-  new Chart(document.getElementById('marginChart'),{
-    type:'line',
-    data:{labels:months,datasets:[{label:'Margin %',data:[22.8,21.1,28.4,31.7,35.8],borderColor:COLORS.primary,backgroundColor:'rgba(108,99,255,.08)',tension:.4,fill:true,pointRadius:5,pointBackgroundColor:COLORS.primary,pointBorderColor:'#fff',pointBorderWidth:2}]},
-    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>v+'%'},grid:{color:'#f0f1f7'}},x:{grid:{display:false}}}}
-  });
-  new Chart(document.getElementById('expenseTrendChart'),{
-    type:'bar',
-    data:{labels:months,datasets:[
-      {label:'Gaji & HR',data:[185,188,190,195,198],backgroundColor:COLORS.primary,borderRadius:4},
-      {label:'Operasional',data:[29,31,30,32,32],backgroundColor:COLORS.success,borderRadius:4},
-      {label:'SaaS / Tools',data:[40,42,44,46,48],backgroundColor:COLORS.warning,borderRadius:4},
-      {label:'Marketing',data:[12,10,15,14,18],backgroundColor:COLORS.danger,borderRadius:4},
-    ]},
-    options:{responsive:true,scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#f0f1f7'},title:{display:true,text:'Juta Rp'}}},plugins:{legend:{position:'top',labels:{usePointStyle:true,padding:14,font:{size:12}}}}}
-  });
-}
-
-// ══════════════ TAB BUTTON ══════════════
-document.querySelectorAll('.card-tabs').forEach(tabGroup=>{
-  tabGroup.querySelectorAll('.tab-btn').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      tabGroup.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-    });
-  });
-});
-
-// ══════════════ INIT ══════════════
-window.addEventListener('DOMContentLoaded',()=>{
-  renderInvoiceTable(invoiceData);
-  renderExpenseTable(expenseData);
-  renderProjectTable();
-  renderProjectCostBreakdown();
-  renderSubscriptions();
-  initDashboardCharts();
-});
-</script>
+<script src="app.js"></script>
 </body>
 </html>
