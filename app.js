@@ -1,11 +1,12 @@
 // ══════════════════════════════════════════
-// NexFinance — app.js  (connected to api.php)
+// NexFinance — app.js  v5 (token auth + full doc update + filter upgrade)
 // ══════════════════════════════════════════
 
 const API = 'api.php';
 
 // ── State ──────────────────────────────────
-let SESSION = null;
+let SESSION      = null;
+let AUTH_TOKEN   = null;          // Bearer token dari login
 let allTransactions = [];
 let allDocuments    = [];
 let allCategories   = [];
@@ -13,12 +14,20 @@ let allUsers        = [];
 let donutChart      = null;
 let cashflowChart   = null;
 
+// ── Doc filter state ───────────────────────
+let docSort = { col: 'dueDate', dir: 'asc' };
+
 // ── API helper ─────────────────────────────
-async function api(action, method='GET', body=null, id=null){
+async function api(action, method='GET', body=null, id=null, extraParams={}){
   let url = `${API}?action=${action}`;
-  if(id) url += `&id=${id}`;
-  const opts = { method, headers:{'Content-Type':'application/json'} };
-  if(body) opts.body = JSON.stringify(body);
+  if (id)  url += `&id=${id}`;
+  for (const [k,v] of Object.entries(extraParams)) url += `&${k}=${encodeURIComponent(v)}`;
+
+  const headers = { 'Content-Type': 'application/json' };
+  if (AUTH_TOKEN) headers['Authorization'] = `Bearer ${AUTH_TOKEN}`;
+
+  const opts = { method, headers };
+  if (body) opts.body = JSON.stringify(body);
   const res = await fetch(url, opts);
   return res.json();
 }
@@ -67,13 +76,20 @@ async function doLogin(){
   const btn = document.getElementById('btn-login');
   btn.disabled = true; btn.textContent = 'Masuk...';
   try {
-    const res = await api('login','POST',{username:u, password:p});
-    if(res.success){
-      SESSION = res.user;
+    const res = await fetch(`${API}?action=login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: u, password: p })
+    });
+    const data = await res.json();
+    if(data.success){
+      SESSION    = data.user;
+      AUTH_TOKEN = data.token || null;
       sessionStorage.setItem('nf_session', JSON.stringify(SESSION));
+      if(AUTH_TOKEN) sessionStorage.setItem('nf_token', AUTH_TOKEN);
       startApp();
     } else {
-      showLoginErr(res.message || 'Login gagal');
+      showLoginErr(data.message || 'Login gagal');
     }
   } catch(e){ showLoginErr('Tidak dapat terhubung ke server'); }
   btn.disabled = false; btn.textContent = 'Masuk';
@@ -82,8 +98,10 @@ function showLoginErr(msg){ const el=document.getElementById('login-err'); el.te
 function hideLoginErr(){ document.getElementById('login-err').classList.remove('show'); }
 
 function doLogout(){
-  SESSION = null;
+  SESSION    = null;
+  AUTH_TOKEN = null;
   sessionStorage.removeItem('nf_session');
+  sessionStorage.removeItem('nf_token');
   document.getElementById('app').className = '';
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
@@ -97,11 +115,9 @@ function startApp(){
   const app = document.getElementById('app');
   app.style.display = 'flex';
   app.classList.add('show');
-  // update sidebar user info
   document.getElementById('sb-av').textContent   = (SESSION.avatar||SESSION.name||'A').charAt(0).toUpperCase();
   document.getElementById('sb-name').textContent = SESSION.name || SESSION.username;
   document.getElementById('sb-role').textContent = SESSION.role || 'Staff';
-  // load initial data
   loadAll();
 }
 
@@ -109,11 +125,11 @@ function startApp(){
 // NAVIGATION
 // ══════════════════════════════════════════
 const pageMeta = {
-  dashboard:    {title:'Dashboard',       sub:'Overview keuangan perusahaan'},
-  income:       {title:'Invoice & Tagihan',sub:'Kelola dokumen keuangan'},
-  expense:      {title:'Pengeluaran',      sub:'Manajemen transaksi keluar'},
-  transactions: {title:'Semua Transaksi',  sub:'Riwayat transaksi lengkap'},
-  settings:     {title:'Pengaturan',       sub:'Konfigurasi sistem'},
+  dashboard:    {title:'Dashboard',        sub:'Overview keuangan perusahaan'},
+  income:       {title:'Invoice & Tagihan', sub:'Kelola dokumen keuangan'},
+  expense:      {title:'Pengeluaran',       sub:'Manajemen transaksi keluar'},
+  transactions: {title:'Semua Transaksi',   sub:'Riwayat transaksi lengkap'},
+  settings:     {title:'Pengaturan',        sub:'Konfigurasi sistem'},
 };
 
 function nav(page){
@@ -124,7 +140,6 @@ function nav(page){
   if(ni) ni.classList.add('active');
   document.getElementById('page-title').textContent = pageMeta[page]?.title || page;
   document.getElementById('page-sub').textContent   = pageMeta[page]?.sub || '';
-  // Lazy render
   if(page==='income')       renderDocTable();
   if(page==='expense')      renderExpTable();
   if(page==='transactions') renderTxnTable();
@@ -133,8 +148,8 @@ function nav(page){
 
 function topbarAdd(){
   const page = document.querySelector('.page.active')?.id?.replace('page-','');
-  if(page==='income')   { openModal('modal-doc'); }
-  else if(page==='expense')  { openModal('modal-txn'); setTxnType('expense'); }
+  if(page==='income')            openModal('modal-doc');
+  else if(page==='expense')    { openModal('modal-txn'); setTxnType('expense'); }
   else if(page==='transactions') openModal('modal-txn');
   else openModal('modal-txn');
 }
@@ -145,7 +160,7 @@ function topbarAdd(){
 function openModal(id){ document.getElementById(id).classList.add('open'); }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.modal-overlay').forEach(m=>{
-  m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); });
+  m.addEventListener('click', e=>{ if(e.target===m) m.classList.remove('open'); });
 });
 
 // ══════════════════════════════════════════
@@ -185,11 +200,12 @@ function populateCatFilters(){
   });
 }
 
+
+
 // ══════════════════════════════════════════
 // DASHBOARD
 // ══════════════════════════════════════════
 async function renderDashboard(){
-  // Summary from API
   const sum = await api('get_summary');
   const bal = sum.balance||0;
   document.getElementById('db-balance').textContent = rpK(bal);
@@ -198,14 +214,12 @@ async function renderDashboard(){
   document.getElementById('db-bal-lbl').textContent = bal>=0 ? 'Positif' : 'Defisit';
   document.getElementById('db-bal-lbl').className   = `sc-badge ${bal>=0?'up':'down'}`;
 
-  // Pending docs
   const pending = allDocuments.filter(d=>d.status==='pending'||d.status==='overdue').length;
-  document.getElementById('db-docs').textContent   = pending + ' dokumen';
+  document.getElementById('db-docs').textContent    = pending + ' dokumen';
   document.getElementById('db-doc-lbl').textContent = 'Perlu Aksi';
 
-  // Recent transactions (last 10)
   const recent = allTransactions.slice(0,10);
-  const tbody = document.getElementById('db-txn-tbody');
+  const tbody  = document.getElementById('db-txn-tbody');
   if(!recent.length){ tbody.innerHTML='<tr class="loading-row"><td colspan="5">Belum ada transaksi</td></tr>'; }
   else { tbody.innerHTML = recent.map(t=>`
     <tr>
@@ -216,7 +230,6 @@ async function renderDashboard(){
       <td>${typeBadge(t.type)}</td>
     </tr>`).join(''); }
 
-  // Donut: expense by category
   const expOnly = allTransactions.filter(t=>t.type==='expense');
   const catMap  = {};
   expOnly.forEach(t=>{ catMap[t.category||'Lain-lain'] = (catMap[t.category||'Lain-lain']||0)+Number(t.amount); });
@@ -237,8 +250,7 @@ async function renderDashboard(){
     });
   }
 
-  // Recent docs
-  const docTbody = document.getElementById('db-doc-tbody');
+  const docTbody   = document.getElementById('db-doc-tbody');
   const recentDocs = allDocuments.slice(0,6);
   if(!recentDocs.length){ docTbody.innerHTML='<tr class="loading-row"><td colspan="4">Belum ada dokumen</td></tr>'; }
   else { docTbody.innerHTML = recentDocs.map(d=>`
@@ -249,30 +261,28 @@ async function renderDashboard(){
       <td>${statusBadge(d.status)}</td>
     </tr>`).join(''); }
 
-  // Cashflow chart (group by month from transactions)
   buildCashflowChart();
 }
 
 function buildCashflowChart(){
-  // Group last 6 months
   const months = [];
   const now = new Date();
   for(let i=5;i>=0;i--){
     const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
-    months.push({ key: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`, label: d.toLocaleDateString('id-ID',{month:'short',year:'2-digit'}) });
+    months.push({ key:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`, label:d.toLocaleDateString('id-ID',{month:'short',year:'2-digit'}) });
   }
-  const incData  = months.map(m=> allTransactions.filter(t=>t.type==='income'  && (t.transaction_date||'').startsWith(m.key)).reduce((s,t)=>s+Number(t.amount),0)/1e6);
-  const expData  = months.map(m=> allTransactions.filter(t=>t.type==='expense' && (t.transaction_date||'').startsWith(m.key)).reduce((s,t)=>s+Number(t.amount),0)/1e6);
+  const incData = months.map(m=> allTransactions.filter(t=>t.type==='income'  && (t.transaction_date||'').startsWith(m.key)).reduce((s,t)=>s+Number(t.amount),0)/1e6);
+  const expData = months.map(m=> allTransactions.filter(t=>t.type==='expense' && (t.transaction_date||'').startsWith(m.key)).reduce((s,t)=>s+Number(t.amount),0)/1e6);
   if(cashflowChart) cashflowChart.destroy();
   const ctx = document.getElementById('db-cashflow');
   if(!ctx) return;
   cashflowChart = new Chart(ctx,{
     type:'bar',
     data:{
-      labels: months.map(m=>m.label),
+      labels:months.map(m=>m.label),
       datasets:[
-        {label:'Pemasukan',data:incData,backgroundColor:'rgba(0,196,140,.7)',borderRadius:5,borderSkipped:false},
-        {label:'Pengeluaran',data:expData,backgroundColor:'rgba(255,100,124,.65)',borderRadius:5,borderSkipped:false},
+        {label:'Pemasukan', data:incData, backgroundColor:'rgba(0,196,140,.7)',  borderRadius:5, borderSkipped:false},
+        {label:'Pengeluaran',data:expData,backgroundColor:'rgba(255,100,124,.65)',borderRadius:5, borderSkipped:false},
       ]
     },
     options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:11}}}},scales:{y:{grid:{color:'#f0f1f7'},title:{display:true,text:'Juta Rp',font:{size:10}}},x:{grid:{display:false}}}}
@@ -280,22 +290,92 @@ function buildCashflowChart(){
 }
 
 
+
 // ══════════════════════════════════════════
-// INVOICE & DOKUMEN
+// INVOICE & DOKUMEN — Filter + Sort + Chips
 // ══════════════════════════════════════════
+
+// Render active filter chips
+function renderDocFilterChips(){
+  const q   = (document.getElementById('inv-search')?.value||'').trim();
+  const typ = document.getElementById('inv-filter-type')?.value||'';
+  const sts = document.getElementById('inv-filter-status')?.value||'';
+  const df  = document.getElementById('inv-filter-date-from')?.value||'';
+  const dt  = document.getElementById('inv-filter-date-to')?.value||'';
+
+  const chips = [];
+  const typLbl = {invoice:'Invoice',receipt:'Kuitansi',quotation:'Penawaran'};
+  const stsLbl = {pending:'Pending',paid:'Lunas',overdue:'Overdue',partial:'Sebagian'};
+  if(q)   chips.push({label:`"${q}"`,          clear:()=>{ document.getElementById('inv-search').value=''; renderDocTable(); }});
+  if(typ) chips.push({label:typLbl[typ]||typ,  clear:()=>{ document.getElementById('inv-filter-type').value=''; renderDocTable(); }});
+  if(sts) chips.push({label:stsLbl[sts]||sts,  clear:()=>{ document.getElementById('inv-filter-status').value=''; renderDocTable(); }});
+  if(df)  chips.push({label:`Dari ${fmtDate(df)}`,  clear:()=>{ document.getElementById('inv-filter-date-from').value=''; renderDocTable(); }});
+  if(dt)  chips.push({label:`Sampai ${fmtDate(dt)}`,clear:()=>{ document.getElementById('inv-filter-date-to').value=''; renderDocTable(); }});
+
+  const wrap = document.getElementById('doc-filter-chips');
+  if(!wrap) return;
+  if(!chips.length){ wrap.innerHTML=''; return; }
+  wrap.innerHTML = chips.map((c,i)=>`
+    <span class="filter-chip">
+      ${c.label}
+      <button class="chip-remove" onclick="docChipClear(${i})" title="Hapus filter">×</button>
+    </span>`).join('') +
+    `<button class="btn btn-ghost btn-sm chip-reset" onclick="resetDocFilters()">🗑 Reset</button>`;
+  // store clear fns
+  wrap._clearFns = chips.map(c=>c.clear);
+}
+function docChipClear(i){
+  const wrap = document.getElementById('doc-filter-chips');
+  if(wrap._clearFns && wrap._clearFns[i]) wrap._clearFns[i]();
+}
+function resetDocFilters(){
+  ['inv-search','inv-filter-type','inv-filter-status','inv-filter-date-from','inv-filter-date-to'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  renderDocTable();
+}
+
+// Sort header click
+function docSortBy(col){
+  if(docSort.col===col) docSort.dir = docSort.dir==='asc'?'desc':'asc';
+  else { docSort.col=col; docSort.dir='asc'; }
+  renderDocTable();
+}
+
+function docSortIcon(col){
+  if(docSort.col!==col) return '<span class="sort-icon">⇅</span>';
+  return docSort.dir==='asc' ? '<span class="sort-icon active">↑</span>' : '<span class="sort-icon active">↓</span>';
+}
+
 function renderDocTable(){
   const q   = (document.getElementById('inv-search')?.value||'').toLowerCase();
   const typ = document.getElementById('inv-filter-type')?.value||'';
   const sts = document.getElementById('inv-filter-status')?.value||'';
+  const df  = document.getElementById('inv-filter-date-from')?.value||'';
+  const dt  = document.getElementById('inv-filter-date-to')?.value||'';
 
   let docs = allDocuments.filter(d=>{
     if(typ && d.type!==typ) return false;
     if(sts && d.status!==sts) return false;
     if(q && !d.title.toLowerCase().includes(q) && !d.entity.toLowerCase().includes(q)) return false;
+    if(df && d.dueDate && d.dueDate < df) return false;
+    if(dt && d.dueDate && d.dueDate > dt) return false;
     return true;
   });
 
-  // Stats
+  // Sort
+  docs = docs.slice().sort((a,b)=>{
+    let va = a[docSort.col], vb = b[docSort.col];
+    if(typeof va==='string') va=va.toLowerCase(), vb=(vb||'').toLowerCase();
+    if(va===undefined||va===null) va='';
+    if(vb===undefined||vb===null) vb='';
+    if(va<vb) return docSort.dir==='asc'?-1:1;
+    if(va>vb) return docSort.dir==='asc'?1:-1;
+    return 0;
+  });
+
+  // Stats (always from full allDocuments)
   const paid    = allDocuments.filter(d=>d.status==='paid');
   const pending = allDocuments.filter(d=>d.status==='pending');
   const overdue = allDocuments.filter(d=>d.status==='overdue');
@@ -308,8 +388,21 @@ function renderDocTable(){
   document.getElementById('inv-tot-ct').textContent   = allDocuments.length+' dok';
   document.getElementById('inv-tot-val').textContent  = rpK(allDocuments.reduce((s,d)=>s+d.amount,0));
 
+  // Result count badge
+  const countEl = document.getElementById('doc-result-count');
+  if(countEl) countEl.textContent = `${docs.length} dokumen`;
+
+  // Chips
+  renderDocFilterChips();
+
+  // Sort headers
+  ['title','entity','type','dueDate','amount','paidAmount','status'].forEach(col=>{
+    const el = document.getElementById(`dth-${col}`);
+    if(el) el.innerHTML = el.dataset.label + docSortIcon(col);
+  });
+
   const tbody = document.getElementById('doc-tbody');
-  if(!docs.length){ tbody.innerHTML='<tr class="loading-row"><td colspan="8">Tidak ada data</td></tr>'; return; }
+  if(!docs.length){ tbody.innerHTML='<tr class="loading-row"><td colspan="8">Tidak ada dokumen yang cocok</td></tr>'; return; }
   tbody.innerHTML = docs.map(d=>`
     <tr>
       <td class="fw-6 c-dark">${d.title}</td>
@@ -370,30 +463,28 @@ async function saveDoc(){
   const sub = parseFloat(document.getElementById('doc-subtotal').value)||0;
   calcDocTotal();
   const body = {
-    title:      document.getElementById('doc-title').value.trim(),
-    entity:     document.getElementById('doc-entity').value.trim(),
-    type:       document.getElementById('doc-type').value,
-    dueDate:    document.getElementById('doc-due').value,
-    amount:     parseFloat(document.getElementById('doc-amount').value)||0,
-    subtotal:   sub,
-    discountAmt:parseFloat(document.getElementById('doc-discount').value)||0,
-    taxPercent: parseFloat(document.getElementById('doc-tax-pct').value)||0,
-    taxAmt:     (sub-(parseFloat(document.getElementById('doc-discount').value)||0))*(parseFloat(document.getElementById('doc-tax-pct').value)||0)/100,
-    notes:      document.getElementById('doc-notes').value,
+    title:       document.getElementById('doc-title').value.trim(),
+    entity:      document.getElementById('doc-entity').value.trim(),
+    type:        document.getElementById('doc-type').value,
+    dueDate:     document.getElementById('doc-due').value,
+    amount:      parseFloat(document.getElementById('doc-amount').value)||0,
+    subtotal:    sub,
+    discountAmt: parseFloat(document.getElementById('doc-discount').value)||0,
+    taxPercent:  parseFloat(document.getElementById('doc-tax-pct').value)||0,
+    taxAmt:      (sub-(parseFloat(document.getElementById('doc-discount').value)||0))*(parseFloat(document.getElementById('doc-tax-pct').value)||0)/100,
+    notes:       document.getElementById('doc-notes').value,
   };
   if(!body.title||!body.entity){ toast('Judul dan entitas wajib diisi','⚠️'); return; }
 
   if(id){
-    // For update we just update status/paid via update_document_payment — or add a full update if needed
-    // We'll reload and patch with add for simplicity (API doesn't have full update_document, only status/payment)
-    // Use add as upsert workaround: delete + add
-    await api('delete_document','DELETE',null,id);
-    await api('add_document','POST',body);
+    // ✅ Proper UPDATE — bukan delete+insert lagi
+    await api('update_document','PUT',body,id);
+    toast('Dokumen diperbarui!');
   } else {
     await api('add_document','POST',body);
+    toast('Dokumen disimpan!');
   }
   closeModal('modal-doc');
-  toast(id ? 'Dokumen diperbarui!' : 'Dokumen disimpan!');
   await loadDocuments();
   renderDocTable();
   if(document.getElementById('page-dashboard').classList.contains('active')) renderDashboard();
@@ -410,48 +501,42 @@ function openPayModal(id){
   openModal('modal-pay');
 }
 
+
+
 // ══════════════════════════════════════════
 // VIEW INVOICE MODAL
 // ══════════════════════════════════════════
 async function viewInvoice(id){
   const d = allDocuments.find(x=>x.id===id);
   if(!d) return;
-
-  // Load company profile for header
   let cp = null;
   try { cp = await api('get_company_profile'); } catch(e){}
 
-  // ── Header band ──
   const typeLabel = {invoice:'Invoice',receipt:'Kuitansi',quotation:'Penawaran Harga'};
   document.getElementById('inv-view-number').textContent = d.title;
   document.getElementById('inv-view-type').textContent   = typeLabel[d.type]||d.type;
 
-  // Company info
   const companyName = cp?.name || 'NexFinance';
   const logoEl = document.getElementById('inv-view-logo');
   if(cp?.logo){ logoEl.innerHTML=`<img src="${cp.logo}" style="width:100%;height:100%;object-fit:contain;border-radius:14px;">`; }
   else { logoEl.textContent = companyName.charAt(0).toUpperCase(); }
-  document.getElementById('inv-view-company').textContent     = companyName;
-  document.getElementById('inv-view-company-addr').textContent= cp?.address ? cp.address.split('\n')[0] : (cp?.email||'');
+  document.getElementById('inv-view-company').textContent      = companyName;
+  document.getElementById('inv-view-company-addr').textContent = cp?.address ? cp.address.split('\n')[0] : (cp?.email||'');
 
-  // Dates
   document.getElementById('inv-view-created').textContent = fmtDate(new Date().toISOString().split('T')[0]);
   document.getElementById('inv-view-due').textContent     = fmtDate(d.dueDate)||'—';
 
-  // Status in band
   const statusColors = {paid:'#00c48c',pending:'#ffb547',overdue:'#ff647c',partial:'#3d9ef8'};
   const statusLabels = {paid:'✅ Lunas',pending:'⏳ Pending',overdue:'🚨 Overdue',partial:'🔵 Sebagian'};
   document.getElementById('inv-view-status-band').innerHTML =
     `<span style="color:${statusColors[d.status]||'#8a94a6'};font-weight:700;">${statusLabels[d.status]||d.status}</span>`;
 
-  // ── Parties ──
   document.getElementById('inv-view-from-name').textContent = companyName;
   document.getElementById('inv-view-from-sub').textContent  = cp ? [cp.email, cp.address?.split('\n')[0]].filter(Boolean).join(' · ') : '';
   document.getElementById('inv-view-to-name').textContent   = d.entity;
   document.getElementById('inv-view-to-sub').textContent    = '';
 
-  // ── Items table ──
-  const items = d.items && d.items.length ? d.items : [{ desc: d.title||'Layanan/Produk', qty:1, price: d.subtotal||d.amount }];
+  const items = d.items && d.items.length ? d.items : [{ desc:d.title||'Layanan/Produk', qty:1, price:d.subtotal||d.amount }];
   document.getElementById('inv-view-items').innerHTML = items.map((item,i)=>`
     <tr>
       <td class="c-muted">${i+1}</td>
@@ -459,14 +544,13 @@ async function viewInvoice(id){
       <td style="text-align:right;font-weight:600;">${rp(item.price||item.amount||(item.qty*item.unitPrice)||0)}</td>
     </tr>`).join('');
 
-  // ── Totals ──
-  const sub     = Number(d.subtotal)||Number(d.amount)||0;
-  const disc    = Number(d.discountAmt)||0;
-  const taxPct  = Number(d.taxPercent)||0;
-  const taxAmt  = Number(d.taxAmt)||(sub-disc)*taxPct/100||0;
-  const total   = Number(d.amount)||0;
-  const paid    = Number(d.paidAmount)||0;
-  const remain  = total - paid;
+  const sub    = Number(d.subtotal)||Number(d.amount)||0;
+  const disc   = Number(d.discountAmt)||0;
+  const taxPct = Number(d.taxPercent)||0;
+  const taxAmt = Number(d.taxAmt)||(sub-disc)*taxPct/100||0;
+  const total  = Number(d.amount)||0;
+  const paid   = Number(d.paidAmount)||0;
+  const remain = total - paid;
 
   document.getElementById('inv-view-subtotal').textContent = rp(sub);
 
@@ -483,22 +567,21 @@ async function viewInvoice(id){
 
   document.getElementById('inv-view-total').textContent = rp(total);
 
-  const paidRow  = document.getElementById('inv-view-paid-row');
-  const remRow   = document.getElementById('inv-view-remaining-row');
+  const paidRow = document.getElementById('inv-view-paid-row');
+  const remRow  = document.getElementById('inv-view-remaining-row');
   if(paid>0){
     paidRow.style.display='flex'; document.getElementById('inv-view-paid').textContent = rp(paid);
     if(remain>0){ remRow.style.display='flex'; document.getElementById('inv-view-remaining').textContent = rp(remain); }
     else remRow.style.display='none';
   } else { paidRow.style.display='none'; remRow.style.display='none'; }
 
-  // ── Payment status box ──
   const psBox   = document.getElementById('inv-view-pay-status');
   const psIcon  = document.getElementById('inv-view-pay-icon');
   const psTitle = document.getElementById('inv-view-pay-title');
   const psSub   = document.getElementById('inv-view-pay-sub');
   psBox.className = 'inv-payment-status ' + (d.status||'pending');
   const statusInfo = {
-    paid:    {icon:'✅',title:'Lunas',sub:`Dibayar penuh ${rp(paid)}`},
+    paid:    {icon:'✅',title:'Lunas',           sub:`Dibayar penuh ${rp(paid)}`},
     pending: {icon:'⏳',title:'Menunggu Pembayaran',sub:`Jatuh tempo: ${fmtDate(d.dueDate)}`},
     overdue: {icon:'🚨',title:'Overdue – Telah Jatuh Tempo',sub:`Jatuh tempo sudah lewat. Segera hubungi klien.`},
     partial: {icon:'🔵',title:'Pembayaran Sebagian',sub:`Terbayar ${rp(paid)} dari ${rp(total)}. Sisa ${rp(remain)}.`},
@@ -506,12 +589,10 @@ async function viewInvoice(id){
   const si = statusInfo[d.status]||statusInfo.pending;
   psIcon.textContent = si.icon; psTitle.textContent = si.title; psSub.textContent = si.sub;
 
-  // ── Notes ──
   const notesWrap = document.getElementById('inv-view-notes-wrap');
   if(d.notes){ notesWrap.style.display='block'; document.getElementById('inv-view-notes').textContent = d.notes; }
   else notesWrap.style.display='none';
 
-  // ── Bank info ──
   const bankWrap = document.getElementById('inv-view-bank-wrap');
   if(cp?.bankName){
     bankWrap.style.display='flex';
@@ -548,22 +629,20 @@ function renderExpTable(){
     return true;
   });
 
-  // Stats
   const total = exp.reduce((s,t)=>s+Number(t.amount),0);
   const now   = new Date();
   const thisM = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   const monthExp = exp.filter(t=>(t.transaction_date||'').startsWith(thisM)).reduce((s,t)=>s+Number(t.amount),0);
-  // Biggest category
   const catMap = {};
   exp.forEach(t=>{ catMap[t.category||'Lain-lain']=(catMap[t.category||'Lain-lain']||0)+Number(t.amount); });
   const bigCat = Object.entries(catMap).sort((a,b)=>b[1]-a[1])[0];
-  document.getElementById('exp-tot-ct').textContent   = exp.length+' txn';
-  document.getElementById('exp-tot-val').textContent  = rpK(total);
-  document.getElementById('exp-cat-ct').textContent   = bigCat ? bigCat[0] : '-';
-  document.getElementById('exp-cat-val').textContent  = bigCat ? rpK(bigCat[1]) : '-';
-  document.getElementById('exp-month-val').textContent= rpK(monthExp);
-  document.getElementById('exp-count-ct').textContent = exp.length+' total';
-  document.getElementById('exp-count-val').textContent= exp.length+' transaksi';
+  document.getElementById('exp-tot-ct').textContent    = exp.length+' txn';
+  document.getElementById('exp-tot-val').textContent   = rpK(total);
+  document.getElementById('exp-cat-ct').textContent    = bigCat ? bigCat[0] : '-';
+  document.getElementById('exp-cat-val').textContent   = bigCat ? rpK(bigCat[1]) : '-';
+  document.getElementById('exp-month-val').textContent = rpK(monthExp);
+  document.getElementById('exp-count-ct').textContent  = exp.length+' total';
+  document.getElementById('exp-count-val').textContent = exp.length+' transaksi';
 
   const tbody = document.getElementById('exp-tbody');
   if(!exp.length){ tbody.innerHTML='<tr class="loading-row"><td colspan="5">Tidak ada pengeluaran</td></tr>'; return; }
@@ -627,18 +706,18 @@ function openTxnModal(id=null){
 function editTxn(id){
   const t = allTransactions.find(x=>x.id==id);
   if(!t) return;
-  document.getElementById('txn-id').value           = t.id;
+  document.getElementById('txn-id').value               = t.id;
   document.getElementById('modal-txn-title').textContent = 'Edit Transaksi';
-  document.getElementById('txn-title').value        = t.title;
-  document.getElementById('txn-type').value         = t.type;
-  document.getElementById('txn-category').value     = t.category||'';
-  document.getElementById('txn-amount').value       = t.amount;
-  document.getElementById('txn-date').value         = t.transaction_date||'';
+  document.getElementById('txn-title').value            = t.title;
+  document.getElementById('txn-type').value             = t.type;
+  document.getElementById('txn-category').value         = t.category||'';
+  document.getElementById('txn-amount').value           = t.amount;
+  document.getElementById('txn-date').value             = t.transaction_date||'';
   openModal('modal-txn');
 }
 
 async function saveTxn(){
-  const id  = document.getElementById('txn-id').value;
+  const id   = document.getElementById('txn-id').value;
   const body = {
     title:    document.getElementById('txn-title').value.trim(),
     type:     document.getElementById('txn-type').value,
@@ -660,6 +739,8 @@ async function saveTxn(){
   renderExpTable();
   if(document.getElementById('page-dashboard').classList.contains('active')) renderDashboard();
 }
+
+
 
 // ══════════════════════════════════════════
 // CONFIRM DELETE
@@ -691,7 +772,6 @@ async function loadSettings(){
   await Promise.all([loadCompanyProfile(), loadUsers(), renderCategories()]);
 }
 
-// Company Profile
 async function loadCompanyProfile(){
   const cp = await api('get_company_profile');
   if(!cp) return;
@@ -735,7 +815,6 @@ async function saveCompanyProfile(){
   toast('Profil perusahaan disimpan!');
 }
 
-// Users
 async function loadUsers(){
   allUsers = await api('get_users');
   renderUsersTable();
@@ -770,18 +849,18 @@ function openUserModal(id=null){
 function editUser(id){
   const u = allUsers.find(x=>x.id===id);
   if(!u) return;
-  document.getElementById('user-id').value       = u.id;
+  document.getElementById('user-id').value               = u.id;
   document.getElementById('modal-user-title').textContent = 'Edit User';
-  document.getElementById('user-username').value = u.username;
-  document.getElementById('user-password').value = u.password||'';
-  document.getElementById('user-name').value     = u.name;
-  document.getElementById('user-phone').value    = u.phone||'';
-  document.getElementById('user-role').value     = u.role||'staff';
+  document.getElementById('user-username').value         = u.username;
+  document.getElementById('user-password').value         = u.password||'';
+  document.getElementById('user-name').value             = u.name;
+  document.getElementById('user-phone').value            = u.phone||'';
+  document.getElementById('user-role').value             = u.role||'staff';
   openModal('modal-user');
 }
 
 async function saveUser(){
-  const id = document.getElementById('user-id').value;
+  const id   = document.getElementById('user-id').value;
   const body = {
     username: document.getElementById('user-username').value.trim(),
     password: document.getElementById('user-password').value,
@@ -815,7 +894,6 @@ function confirmDeleteUser(id, name){
   openModal('modal-confirm');
 }
 
-// Categories
 async function renderCategories(){
   const list = document.getElementById('cat-list');
   if(!allCategories.length){ list.innerHTML='<span class="c-muted fs-12">Belum ada kategori</span>'; return; }
@@ -836,17 +914,14 @@ async function addCategory(){
   toast('Kategori ditambahkan!');
 }
 
+// ✅ Fix: single API call pakai extraParams ?name=X
 async function deleteCategory(name){
-  await api('delete_category','DELETE',null,null);
-  // API uses ?name=X for delete_category
-  const url = `${API}?action=delete_category&name=${encodeURIComponent(name)}`;
-  await fetch(url,{method:'DELETE'});
+  await api('delete_category','DELETE',null,null,{name});
   await loadCategories();
   renderCategories();
   toast('Kategori dihapus','🗑️');
 }
 
-// Settings tabs
 function showStab(tab){
   ['company','users','categories'].forEach(t=>{
     document.getElementById('stab-'+t).style.display = t===tab ? '' : 'none';
@@ -868,12 +943,13 @@ document.getElementById('l-user').addEventListener('keydown', e=>{ if(e.key==='E
 // INIT: check session
 // ══════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', ()=>{
-  const saved = sessionStorage.getItem('nf_session');
-  if(saved){
-    SESSION = JSON.parse(saved);
+  const savedSession = sessionStorage.getItem('nf_session');
+  const savedToken   = sessionStorage.getItem('nf_token');
+  if(savedSession){
+    SESSION    = JSON.parse(savedSession);
+    AUTH_TOKEN = savedToken || null;
     startApp();
   }
-  // Set today as default date
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('txn-date').value = today;
   document.getElementById('doc-due').value  = today;

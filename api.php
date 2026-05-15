@@ -9,6 +9,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
+// ============================================================
+// AUTH — Bearer Token
+// Semua endpoint kecuali 'login' wajib menyertakan:
+//   Authorization: Bearer <token>
+// Token disimpan di tabel users kolom api_token setelah login.
+// ============================================================
+$action = isset($_GET['action']) ? $_GET['action'] : '';
+
+// Endpoint publik (tidak perlu token)
+$publicActions = ['login'];
+
+if (!in_array($action, $publicActions)) {
+    $authHeader = '';
+    if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+        $authHeader = $_SERVER['HTTP_AUTHORIZATION'];
+    } elseif (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+        $authHeader = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+    }
+
+    $token = '';
+    if (preg_match('/Bearer\s+(.+)/i', $authHeader, $m)) {
+        $token = trim($m[1]);
+    }
+
+    if (empty($token)) {
+        http_response_code(401);
+        echo json_encode(["error" => "Unauthorized: token tidak ditemukan"]);
+        exit();
+    }
+
+    // Validasi token ke DB (dilakukan setelah koneksi)
+    define('PENDING_TOKEN_CHECK', $token);
+}
+
+// ── DB connection ──────────────────────────────────────────
 $host     = "localhost";
 $db_name  = "digiduho_NexFinance";
 $username = "digiduho_NexFinance";
@@ -23,8 +58,19 @@ try {
     exit();
 }
 
-$action = isset($_GET['action']) ? $_GET['action'] : '';
-$input  = json_decode(file_get_contents("php://input"), true) ?? [];
+// ── Validasi token setelah koneksi tersedia ────────────────
+if (defined('PENDING_TOKEN_CHECK')) {
+    $tok = PENDING_TOKEN_CHECK;
+    $stmt = $conn->prepare("SELECT id FROM users WHERE api_token = :tok LIMIT 1");
+    $stmt->execute([':tok' => $tok]);
+    if (!$stmt->fetch()) {
+        http_response_code(401);
+        echo json_encode(["error" => "Unauthorized: token tidak valid"]);
+        exit();
+    }
+}
+
+$input = json_decode(file_get_contents("php://input"), true) ?? [];
 
 switch ($action) {
 
@@ -110,7 +156,6 @@ switch ($action) {
 
     case 'add_document':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Cek apakah kolom extra sudah ada, kalau belum tetap insert minimal
             $cols = "title, entity, amount, paid_amount, type, status, due_date";
             $vals = ":title, :entity, :amount, 0, :type, 'pending', :due_date";
             $params = [
@@ -120,7 +165,6 @@ switch ($action) {
                 ':type'     => $input['type'],
                 ':due_date' => $input['dueDate'],
             ];
-            // Optional extra fields jika kolom sudah ada di DB
             $extraFields = ['notes','subtotal','discount_amt','tax_amt','tax_percent','items_json'];
             $extraMap = [
                 'notes'       => $input['notes'] ?? '',
@@ -130,8 +174,6 @@ switch ($action) {
                 'tax_percent' => $input['taxPercent'] ?? 0,
                 'items_json'  => isset($input['items']) ? json_encode($input['items']) : null,
             ];
-
-            // Cek kolom yang ada di tabel
             $colCheck = $conn->query("SHOW COLUMNS FROM documents")->fetchAll(PDO::FETCH_COLUMN);
             foreach ($extraFields as $f) {
                 if (in_array($f, $colCheck)) {
@@ -140,10 +182,46 @@ switch ($action) {
                     $params[":$f"] = $extraMap[$f];
                 }
             }
-
             $stmt = $conn->prepare("INSERT INTO documents ($cols) VALUES ($vals)");
             $stmt->execute($params);
             echo json_encode(["message" => "Dokumen tersimpan", "id" => $conn->lastInsertId()]);
+        }
+        break;
+
+    // ── NEW: full document update (no longer delete+insert) ──
+    case 'update_document':
+        if ($_SERVER['REQUEST_METHOD'] === 'PUT' && isset($_GET['id'])) {
+            $colCheck = $conn->query("SHOW COLUMNS FROM documents")->fetchAll(PDO::FETCH_COLUMN);
+
+            $sets   = "title=:title, entity=:entity, amount=:amount, type=:type, due_date=:due_date";
+            $params = [
+                ':title'    => $input['title'],
+                ':entity'   => $input['entity'],
+                ':amount'   => $input['amount'],
+                ':type'     => $input['type'],
+                ':due_date' => $input['dueDate'],
+                ':id'       => $_GET['id'],
+            ];
+
+            $extraFields = ['notes','subtotal','discount_amt','tax_amt','tax_percent','items_json'];
+            $extraMap = [
+                'notes'       => $input['notes'] ?? '',
+                'subtotal'    => $input['subtotal'] ?? $input['amount'],
+                'discount_amt'=> $input['discountAmt'] ?? 0,
+                'tax_amt'     => $input['taxAmt'] ?? 0,
+                'tax_percent' => $input['taxPercent'] ?? 0,
+                'items_json'  => isset($input['items']) ? json_encode($input['items']) : null,
+            ];
+            foreach ($extraFields as $f) {
+                if (in_array($f, $colCheck)) {
+                    $sets .= ", $f=:$f";
+                    $params[":$f"] = $extraMap[$f];
+                }
+            }
+
+            $stmt = $conn->prepare("UPDATE documents SET $sets WHERE id=:id");
+            $stmt->execute($params);
+            echo json_encode(["message" => "Dokumen diperbarui"]);
         }
         break;
 
@@ -186,7 +264,6 @@ switch ($action) {
 
     case 'add_category':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Ignore duplikat karena ada UNIQUE KEY
             $stmt = $conn->prepare("INSERT IGNORE INTO categories (name) VALUES (:name)");
             $stmt->execute([':name' => $input['name']]);
             echo json_encode(["message" => "Kategori ditambahkan"]);
@@ -195,8 +272,15 @@ switch ($action) {
 
     case 'delete_category':
         if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+            // Support both ?name=X (query param) pattern
+            $catName = isset($_GET['name']) ? $_GET['name'] : ($input['name'] ?? '');
+            if (empty($catName)) {
+                http_response_code(400);
+                echo json_encode(["error" => "Nama kategori wajib diisi"]);
+                break;
+            }
             $stmt = $conn->prepare("DELETE FROM categories WHERE name=:name");
-            $stmt->execute([':name' => $_GET['name']]);
+            $stmt->execute([':name' => $catName]);
             echo json_encode(["message" => "Kategori dihapus"]);
         }
         break;
@@ -224,7 +308,6 @@ switch ($action) {
 
     case 'update_company_profile':
         if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
-            // Upsert: update jika ada, insert jika belum
             $stmt = $conn->prepare("
                 INSERT INTO company_profile (id, name, address, email, logo_base64, bank_name, bank_account, bank_account_name)
                 VALUES (1, :name, :address, :email, :logo, :bank_name, :bank_account, :bank_account_name)
@@ -253,7 +336,15 @@ switch ($action) {
         $stmt = $conn->query("SELECT id, username, password, name, phone, role, avatar FROM users ORDER BY id ASC");
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $rows = array_map(function($r) {
-            return ['id'=>(int)$r['id'], 'username'=>$r['username'], 'password'=>$r['password'], 'name'=>$r['name'], 'phone'=>$r['phone'], 'role'=>$r['role'], 'avatar'=>$r['avatar']];
+            return [
+                'id'       => (int)$r['id'],
+                'username' => $r['username'],
+                'password' => $r['password'],
+                'name'     => $r['name'],
+                'phone'    => $r['phone'],
+                'role'     => $r['role'],
+                'avatar'   => $r['avatar'],
+            ];
         }, $rows);
         echo json_encode($rows);
         break;
@@ -295,13 +386,24 @@ switch ($action) {
         }
         break;
 
+    // ── LOGIN — generate & return token ───────────────────────
     case 'login':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare("SELECT id, username, name, phone, role, avatar FROM users WHERE username=:username AND password=:password LIMIT 1");
             $stmt->execute([':username' => $input['username'], ':password' => $input['password']]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($user) {
-                echo json_encode(["success" => true, "user" => $user]);
+                // Generate secure token & persist it
+                $token = bin2hex(random_bytes(32));
+                // Ensure column exists (graceful: skip if column missing)
+                try {
+                    $upd = $conn->prepare("UPDATE users SET api_token=:tok WHERE id=:id");
+                    $upd->execute([':tok' => $token, ':id' => $user['id']]);
+                } catch(PDOException $e) {
+                    // api_token column may not exist yet — still allow login, just skip token
+                    $token = null;
+                }
+                echo json_encode(["success" => true, "user" => $user, "token" => $token]);
             } else {
                 http_response_code(401);
                 echo json_encode(["success" => false, "message" => "Username atau password salah"]);
@@ -310,7 +412,7 @@ switch ($action) {
         break;
 
     default:
-        echo json_encode(["message" => "NexFinance API V4 is running.", "status" => "active"]);
+        echo json_encode(["message" => "NexFinance API V5 is running.", "status" => "active"]);
         break;
 }
 ?>

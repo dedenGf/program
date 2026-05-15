@@ -379,10 +379,56 @@ tbody tr:hover{background:#fafbff;}
   .modal-header,.inv-modal-actions{display:none!important;}
 }
 
+/* ── FILTER CHIPS ── */
+.filter-chips{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-height:0;margin-bottom:10px;}
+.filter-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 10px 4px 12px;
+  background:var(--primary-light);
+  color:var(--primary);
+  border-radius:20px;
+  font-size:11.5px;font-weight:600;
+  border:1px solid rgba(108,99,255,.18);
+}
+.chip-remove{
+  background:none;border:none;cursor:pointer;
+  color:var(--primary);font-size:15px;line-height:1;
+  padding:0 2px;opacity:.65;transition:.15s;
+}
+.chip-remove:hover{opacity:1;color:var(--danger);}
+.chip-reset{
+  font-size:11px!important;padding:4px 10px!important;
+  color:var(--muted)!important;border:1px solid var(--border);
+  border-radius:20px!important;
+}
+.chip-reset:hover{color:var(--danger)!important;border-color:var(--danger);}
+
+/* ── SORT ICONS ── */
+.sort-icon{font-size:11px;color:var(--muted);margin-left:3px;transition:.15s;}
+.sort-icon.active{color:var(--primary);}
+th.sortable{cursor:pointer;user-select:none;white-space:nowrap;}
+th.sortable:hover{color:var(--primary);}
+th.sortable:hover .sort-icon{color:var(--primary);}
+
+/* ── DOC FILTER ROW EXTENDED ── */
+.filter-row-doc{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px;}
+.filter-row-doc .date-range{display:flex;align-items:center;gap:6px;}
+.filter-row-doc .date-range input[type=date]{
+  padding:7px 10px;border:1.5px solid var(--border);border-radius:9px;
+  font-size:12px;font-family:'Inter',sans-serif;color:var(--text);
+  outline:none;background:#fff;cursor:pointer;transition:.18s;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.filter-row-doc .date-range input[type=date]:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.1);}
+.date-sep{font-size:11px;color:var(--muted);}
+.doc-result-count{margin-left:auto;font-size:11.5px;color:var(--muted);font-weight:500;white-space:nowrap;}
+
 /* ── RESPONSIVE ── */
 @media(max-width:960px){
   .stats-grid{grid-template-columns:1fr 1fr;}
   .grid-2,.grid-60,.grid-3{grid-template-columns:1fr;}
+  .filter-row-doc{flex-direction:column;align-items:flex-start;}
+  .doc-result-count{margin-left:0;}
 }
 </style>
 </head>
@@ -559,8 +605,9 @@ tbody tr:hover{background:#fafbff;}
       <button class="btn btn-primary" onclick="openModal('modal-doc')">＋ Buat Dokumen</button>
     </div>
     <div class="card-body" style="padding-bottom:0">
-      <div class="filter-row">
-        <div class="srch"><input type="text" id="inv-search" placeholder="Cari dokumen..." oninput="renderDocTable()"></div>
+      <!-- Filter Row -->
+      <div class="filter-row-doc">
+        <div class="srch"><input type="text" id="inv-search" placeholder="Cari judul / entitas..." oninput="renderDocTable()"></div>
         <div class="sel-wrap"><select id="inv-filter-type" onchange="renderDocTable()">
           <option value="">Semua Tipe</option>
           <option value="invoice">Invoice</option>
@@ -574,11 +621,30 @@ tbody tr:hover{background:#fafbff;}
           <option value="overdue">Overdue</option>
           <option value="partial">Sebagian</option>
         </select></div>
+        <div class="date-range">
+          <input type="date" id="inv-filter-date-from" title="Jatuh tempo dari" onchange="renderDocTable()">
+          <span class="date-sep">—</span>
+          <input type="date" id="inv-filter-date-to" title="Jatuh tempo sampai" onchange="renderDocTable()">
+        </div>
+        <span class="doc-result-count" id="doc-result-count"></span>
       </div>
+      <!-- Active Filter Chips -->
+      <div class="filter-chips" id="doc-filter-chips"></div>
     </div>
     <div class="tbl-wrap">
       <table>
-        <thead><tr><th>Judul</th><th>Entitas</th><th>Tipe</th><th>Jatuh Tempo</th><th>Jumlah</th><th>Terbayar</th><th>Status</th><th>Aksi</th></tr></thead>
+        <thead>
+          <tr>
+            <th class="sortable" id="dth-title"     data-label="Judul"       onclick="docSortBy('title')">Judul <span class="sort-icon">⇅</span></th>
+            <th class="sortable" id="dth-entity"    data-label="Entitas"     onclick="docSortBy('entity')">Entitas <span class="sort-icon">⇅</span></th>
+            <th class="sortable" id="dth-type"      data-label="Tipe"        onclick="docSortBy('type')">Tipe <span class="sort-icon">⇅</span></th>
+            <th class="sortable" id="dth-dueDate"   data-label="Jatuh Tempo" onclick="docSortBy('dueDate')">Jatuh Tempo <span class="sort-icon active">↑</span></th>
+            <th class="sortable" id="dth-amount"    data-label="Jumlah"      onclick="docSortBy('amount')">Jumlah <span class="sort-icon">⇅</span></th>
+            <th class="sortable" id="dth-paidAmount" data-label="Terbayar"   onclick="docSortBy('paidAmount')">Terbayar <span class="sort-icon">⇅</span></th>
+            <th class="sortable" id="dth-status"    data-label="Status"      onclick="docSortBy('status')">Status <span class="sort-icon">⇅</span></th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
         <tbody id="doc-tbody"><tr class="loading-row"><td colspan="8">Memuat data...</td></tr></tbody>
       </table>
     </div>
