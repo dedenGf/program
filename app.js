@@ -320,9 +320,10 @@ function renderDocTable(){
       <td class="${d.paidAmount>0?'c-success':''}">${rp(d.paidAmount)}</td>
       <td>${statusBadge(d.status)}</td>
       <td><div class="act-btns">
-        <button class="btn btn-outline btn-sm" onclick="openPayModal(${d.id})">💳</button>
-        <button class="btn btn-outline btn-sm" onclick="editDoc(${d.id})">✏️</button>
-        <button class="btn btn-sm btn-danger" onclick="confirmDelete('doc',${d.id},'${d.title.replace(/'/g,"\\'")}')">🗑</button>
+        <button class="btn btn-outline btn-sm" title="Lihat Invoice" onclick="viewInvoice(${d.id})">👁</button>
+        <button class="btn btn-outline btn-sm" title="Catat Pembayaran" onclick="openPayModal(${d.id})">💳</button>
+        <button class="btn btn-outline btn-sm" title="Edit" onclick="editDoc(${d.id})">✏️</button>
+        <button class="btn btn-sm btn-danger" title="Hapus" onclick="confirmDelete('doc',${d.id},'${d.title.replace(/'/g,"\\'")}')">🗑</button>
       </div></td>
     </tr>`).join('');
 }
@@ -407,6 +408,119 @@ function openPayModal(id){
   document.getElementById('pay-amount').value    = d.paidAmount||0;
   document.getElementById('pay-status').value    = d.status==='paid'?'paid':'partial';
   openModal('modal-pay');
+}
+
+// ══════════════════════════════════════════
+// VIEW INVOICE MODAL
+// ══════════════════════════════════════════
+async function viewInvoice(id){
+  const d = allDocuments.find(x=>x.id===id);
+  if(!d) return;
+
+  // Load company profile for header
+  let cp = null;
+  try { cp = await api('get_company_profile'); } catch(e){}
+
+  // ── Header band ──
+  const typeLabel = {invoice:'Invoice',receipt:'Kuitansi',quotation:'Penawaran Harga'};
+  document.getElementById('inv-view-number').textContent = d.title;
+  document.getElementById('inv-view-type').textContent   = typeLabel[d.type]||d.type;
+
+  // Company info
+  const companyName = cp?.name || 'NexFinance';
+  const logoEl = document.getElementById('inv-view-logo');
+  if(cp?.logo){ logoEl.innerHTML=`<img src="${cp.logo}" style="width:100%;height:100%;object-fit:contain;border-radius:14px;">`; }
+  else { logoEl.textContent = companyName.charAt(0).toUpperCase(); }
+  document.getElementById('inv-view-company').textContent     = companyName;
+  document.getElementById('inv-view-company-addr').textContent= cp?.address ? cp.address.split('\n')[0] : (cp?.email||'');
+
+  // Dates
+  document.getElementById('inv-view-created').textContent = fmtDate(new Date().toISOString().split('T')[0]);
+  document.getElementById('inv-view-due').textContent     = fmtDate(d.dueDate)||'—';
+
+  // Status in band
+  const statusColors = {paid:'#00c48c',pending:'#ffb547',overdue:'#ff647c',partial:'#3d9ef8'};
+  const statusLabels = {paid:'✅ Lunas',pending:'⏳ Pending',overdue:'🚨 Overdue',partial:'🔵 Sebagian'};
+  document.getElementById('inv-view-status-band').innerHTML =
+    `<span style="color:${statusColors[d.status]||'#8a94a6'};font-weight:700;">${statusLabels[d.status]||d.status}</span>`;
+
+  // ── Parties ──
+  document.getElementById('inv-view-from-name').textContent = companyName;
+  document.getElementById('inv-view-from-sub').textContent  = cp ? [cp.email, cp.address?.split('\n')[0]].filter(Boolean).join(' · ') : '';
+  document.getElementById('inv-view-to-name').textContent   = d.entity;
+  document.getElementById('inv-view-to-sub').textContent    = '';
+
+  // ── Items table ──
+  const items = d.items && d.items.length ? d.items : [{ desc: d.title||'Layanan/Produk', qty:1, price: d.subtotal||d.amount }];
+  document.getElementById('inv-view-items').innerHTML = items.map((item,i)=>`
+    <tr>
+      <td class="c-muted">${i+1}</td>
+      <td>${item.desc||item.name||item.description||'—'}</td>
+      <td style="text-align:right;font-weight:600;">${rp(item.price||item.amount||(item.qty*item.unitPrice)||0)}</td>
+    </tr>`).join('');
+
+  // ── Totals ──
+  const sub     = Number(d.subtotal)||Number(d.amount)||0;
+  const disc    = Number(d.discountAmt)||0;
+  const taxPct  = Number(d.taxPercent)||0;
+  const taxAmt  = Number(d.taxAmt)||(sub-disc)*taxPct/100||0;
+  const total   = Number(d.amount)||0;
+  const paid    = Number(d.paidAmount)||0;
+  const remain  = total - paid;
+
+  document.getElementById('inv-view-subtotal').textContent = rp(sub);
+
+  const discRow = document.getElementById('inv-view-disc-row');
+  if(disc>0){ discRow.style.display='flex'; document.getElementById('inv-view-discount').textContent = '− '+rp(disc); }
+  else discRow.style.display='none';
+
+  const taxRow = document.getElementById('inv-view-tax-row');
+  if(taxPct>0||taxAmt>0){
+    taxRow.style.display='flex';
+    document.getElementById('inv-view-tax-pct').textContent = taxPct;
+    document.getElementById('inv-view-tax-amt').textContent = rp(taxAmt);
+  } else taxRow.style.display='none';
+
+  document.getElementById('inv-view-total').textContent = rp(total);
+
+  const paidRow  = document.getElementById('inv-view-paid-row');
+  const remRow   = document.getElementById('inv-view-remaining-row');
+  if(paid>0){
+    paidRow.style.display='flex'; document.getElementById('inv-view-paid').textContent = rp(paid);
+    if(remain>0){ remRow.style.display='flex'; document.getElementById('inv-view-remaining').textContent = rp(remain); }
+    else remRow.style.display='none';
+  } else { paidRow.style.display='none'; remRow.style.display='none'; }
+
+  // ── Payment status box ──
+  const psBox   = document.getElementById('inv-view-pay-status');
+  const psIcon  = document.getElementById('inv-view-pay-icon');
+  const psTitle = document.getElementById('inv-view-pay-title');
+  const psSub   = document.getElementById('inv-view-pay-sub');
+  psBox.className = 'inv-payment-status ' + (d.status||'pending');
+  const statusInfo = {
+    paid:    {icon:'✅',title:'Lunas',sub:`Dibayar penuh ${rp(paid)}`},
+    pending: {icon:'⏳',title:'Menunggu Pembayaran',sub:`Jatuh tempo: ${fmtDate(d.dueDate)}`},
+    overdue: {icon:'🚨',title:'Overdue – Telah Jatuh Tempo',sub:`Jatuh tempo sudah lewat. Segera hubungi klien.`},
+    partial: {icon:'🔵',title:'Pembayaran Sebagian',sub:`Terbayar ${rp(paid)} dari ${rp(total)}. Sisa ${rp(remain)}.`},
+  };
+  const si = statusInfo[d.status]||statusInfo.pending;
+  psIcon.textContent = si.icon; psTitle.textContent = si.title; psSub.textContent = si.sub;
+
+  // ── Notes ──
+  const notesWrap = document.getElementById('inv-view-notes-wrap');
+  if(d.notes){ notesWrap.style.display='block'; document.getElementById('inv-view-notes').textContent = d.notes; }
+  else notesWrap.style.display='none';
+
+  // ── Bank info ──
+  const bankWrap = document.getElementById('inv-view-bank-wrap');
+  if(cp?.bankName){
+    bankWrap.style.display='flex';
+    document.getElementById('inv-view-bank-name').textContent   = cp.bankName;
+    document.getElementById('inv-view-bank-acc').textContent    = cp.bankAccount||'—';
+    document.getElementById('inv-view-bank-holder').textContent = 'a.n. '+(cp.bankAccountName||companyName);
+  } else bankWrap.style.display='none';
+
+  openModal('modal-invoice-view');
 }
 
 async function savePay(){

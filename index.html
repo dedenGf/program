@@ -59,11 +59,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-
 .nav-item.active::before{content:'';position:absolute;left:-14px;top:50%;transform:translateY(-50%);width:4px;height:22px;background:linear-gradient(180deg,var(--primary),var(--accent));border-radius:0 4px 4px 0;}
 .nav-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
 .nav-item.active .nav-icon{background:linear-gradient(135deg,var(--primary),var(--accent));box-shadow:0 4px 10px rgba(108,99,255,.28);}
-.sidebar-upgrade{margin:12px 14px;border-radius:14px;background:linear-gradient(135deg,#6c63ff,#ff6b35);padding:16px;color:#fff;position:relative;overflow:hidden;}
-.sidebar-upgrade::before{content:'';position:absolute;top:-15px;right:-15px;width:64px;height:64px;background:rgba(255,255,255,.1);border-radius:50%;}
-.upgrade-t{font-size:12px;font-weight:700;margin-bottom:3px;}
-.upgrade-d{font-size:10px;opacity:.8;margin-bottom:10px;line-height:1.4;}
-.upgrade-btn{background:#fff;color:var(--primary);border:none;border-radius:7px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;width:100%;}
+/* upgrade card removed */
 .sidebar-footer{padding:12px 14px;border-top:1px solid var(--border);}
 .user-card{display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;cursor:pointer;transition:.15s;}
 .user-card:hover{background:var(--bg);}
@@ -208,6 +204,181 @@ tbody tr:hover{background:#fafbff;}
 .stab{padding:8px 16px;border:none;background:transparent;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;font-family:'Inter',sans-serif;border-bottom:2px solid transparent;margin-bottom:-1px;transition:.15s;}
 .stab.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:600;}
 
+/* ── CUSTOM SELECT ── */
+.sel-wrap{position:relative;display:inline-block;}
+.sel-wrap select{
+  appearance:none;-webkit-appearance:none;
+  padding:8px 36px 8px 14px;
+  background:#fff;
+  border:1.5px solid var(--border);
+  border-radius:10px;
+  font-size:12.5px;font-family:'Inter',sans-serif;font-weight:500;
+  color:var(--text);cursor:pointer;outline:none;
+  transition:border .18s, box-shadow .18s;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  min-width:140px;
+}
+.sel-wrap select:hover{border-color:#c4bcff;}
+.sel-wrap select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.1);}
+.sel-wrap::after{
+  content:'';position:absolute;right:13px;top:50%;transform:translateY(-50%);
+  width:0;height:0;
+  border-left:4px solid transparent;border-right:4px solid transparent;
+  border-top:5px solid var(--muted);pointer-events:none;
+}
+.sel-wrap:hover::after{border-top-color:var(--primary);}
+/* override old period-sel & fg select */
+.period-sel{
+  appearance:none;-webkit-appearance:none;
+  padding:8px 36px 8px 14px;
+  background:#fff;
+  border:1.5px solid var(--border);
+  border-radius:10px;
+  font-size:12.5px;font-family:'Inter',sans-serif;font-weight:500;
+  color:var(--text);cursor:pointer;outline:none;
+  transition:border .18s, box-shadow .18s;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.period-sel:hover{border-color:#c4bcff;}
+.period-sel:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.1);}
+.topbar-right .sel-wrap,.filter-row .sel-wrap{display:inline-block;}
+.fg select{
+  appearance:none;-webkit-appearance:none;
+  padding:9px 36px 9px 12px;
+  background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238a94a6' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 12px center;
+  border:1.5px solid var(--border);
+  border-radius:9px;
+  font-size:13px;font-family:'Inter',sans-serif;
+  color:var(--text);cursor:pointer;outline:none;
+  transition:border .18s, box-shadow .18s;
+}
+.fg select:hover{border-color:#c4bcff;}
+.fg select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.1);}
+
+/* ── STAT CARD CLICKABLE ── */
+.stat-card.clickable{cursor:pointer;}
+.stat-card.clickable:hover{
+  box-shadow:var(--shadow-md);
+  border-color:var(--primary);
+  transform:translateY(-3px);
+}
+.stat-card.clickable:hover .sc-label::after{
+  content:' →';color:var(--primary);font-weight:700;
+}
+
+/* ── INVOICE VIEW MODAL ── */
+.inv-view{padding:0;}
+.inv-header-band{
+  background:linear-gradient(135deg,var(--dark) 0%,#312e81 100%);
+  padding:32px 36px 28px;
+  color:#fff;
+  position:relative;overflow:hidden;
+}
+.inv-header-band::before{
+  content:'';position:absolute;right:-40px;top:-40px;
+  width:180px;height:180px;border-radius:50%;
+  background:rgba(255,255,255,.05);
+}
+.inv-header-band::after{
+  content:'';position:absolute;right:40px;bottom:-60px;
+  width:140px;height:140px;border-radius:50%;
+  background:rgba(255,255,255,.04);
+}
+.inv-band-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;position:relative;z-index:1;}
+.inv-company-logo{
+  width:52px;height:52px;border-radius:14px;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:800;color:#fff;
+  box-shadow:0 8px 20px rgba(108,99,255,.4);
+}
+.inv-company-name{font-size:18px;font-weight:800;letter-spacing:-.3px;margin-bottom:2px;}
+.inv-company-sub{font-size:11px;opacity:.65;}
+.inv-number-wrap{text-align:right;}
+.inv-number{font-size:24px;font-weight:800;letter-spacing:-.5px;}
+.inv-type-pill{
+  display:inline-block;margin-top:6px;
+  padding:3px 12px;border-radius:20px;
+  font-size:11px;font-weight:600;
+  background:rgba(255,255,255,.15);
+  backdrop-filter:blur(4px);
+}
+.inv-band-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;position:relative;z-index:1;}
+.inv-meta-item{}
+.inv-meta-label{font-size:10px;opacity:.6;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;}
+.inv-meta-value{font-size:13px;font-weight:600;}
+.inv-body{padding:28px 36px;}
+.inv-parties{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;}
+.inv-party-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px;}
+.inv-party-name{font-size:15px;font-weight:700;color:var(--dark);margin-bottom:2px;}
+.inv-party-sub{font-size:12px;color:var(--muted);line-height:1.5;}
+.inv-divider{height:1px;background:var(--border);margin-bottom:24px;}
+.inv-items-table{width:100%;border-collapse:collapse;margin-bottom:24px;}
+.inv-items-table th{
+  padding:9px 14px;font-size:10.5px;font-weight:700;
+  color:var(--muted);text-transform:uppercase;letter-spacing:.5px;
+  background:var(--bg);border-bottom:2px solid var(--border);
+  text-align:left;
+}
+.inv-items-table th:last-child{text-align:right;}
+.inv-items-table td{padding:13px 14px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text);}
+.inv-items-table td:last-child{text-align:right;font-weight:600;}
+.inv-items-table tbody tr:last-child td{border-bottom:none;}
+.inv-totals{display:flex;flex-direction:column;align-items:flex-end;gap:6px;margin-bottom:24px;}
+.inv-total-row{display:flex;align-items:center;gap:48px;font-size:13px;}
+.inv-total-row .inv-tl{color:var(--muted);}
+.inv-total-row .inv-tv{font-weight:600;color:var(--dark);min-width:120px;text-align:right;}
+.inv-grand{
+  display:flex;align-items:center;gap:48px;
+  background:linear-gradient(135deg,rgba(108,99,255,.08),rgba(255,107,53,.05));
+  border:1.5px solid rgba(108,99,255,.15);
+  padding:12px 16px;border-radius:12px;
+  margin-bottom:4px;
+}
+.inv-grand .inv-tl{font-weight:700;color:var(--dark);font-size:14px;}
+.inv-grand .inv-tv{font-weight:800;color:var(--primary);font-size:16px;min-width:120px;text-align:right;}
+.inv-payment-status{
+  display:flex;align-items:center;gap:10px;
+  padding:14px 16px;border-radius:12px;
+  margin-bottom:24px;
+  font-size:13px;
+}
+.inv-payment-status.paid{background:var(--success-light);border:1.5px solid rgba(0,196,140,.2);}
+.inv-payment-status.pending{background:var(--warning-light);border:1.5px solid rgba(255,181,71,.2);}
+.inv-payment-status.overdue{background:var(--danger-light);border:1.5px solid rgba(255,100,124,.2);}
+.inv-payment-status.partial{background:var(--info-light);border:1.5px solid rgba(61,158,248,.2);}
+.inv-status-icon{font-size:20px;}
+.inv-status-text{}
+.inv-status-title{font-weight:700;color:var(--dark);}
+.inv-status-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.inv-notes{background:var(--bg);border-radius:10px;padding:14px 16px;margin-bottom:24px;}
+.inv-notes-label{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.inv-notes-text{font-size:13px;color:var(--text);line-height:1.6;}
+.inv-bank-box{
+  border:1.5px solid var(--border);border-radius:12px;
+  padding:14px 16px;margin-bottom:0;
+  display:flex;align-items:center;gap:14px;
+}
+.inv-bank-icon{
+  width:38px;height:38px;border-radius:9px;
+  background:var(--primary-light);
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+  flex-shrink:0;
+}
+.inv-bank-name{font-size:11px;color:var(--muted);margin-bottom:2px;}
+.inv-bank-acc{font-size:14px;font-weight:700;color:var(--dark);}
+.inv-bank-holder{font-size:11px;color:var(--muted);}
+.inv-footer-note{text-align:center;font-size:11px;color:var(--muted);padding:16px 36px 24px;border-top:1px solid var(--border);margin-top:0;}
+
+/* ── PRINT ── */
+@media print{
+  body *{visibility:hidden;}
+  #modal-invoice-view,#modal-invoice-view *{visibility:visible;}
+  #modal-invoice-view{position:fixed;inset:0;z-index:9999;overflow:auto;}
+  .modal-overlay{background:none!important;backdrop-filter:none!important;}
+  .modal-header,.inv-modal-actions{display:none!important;}
+}
+
 /* ── RESPONSIVE ── */
 @media(max-width:960px){
   .stats-grid{grid-template-columns:1fr 1fr;}
@@ -262,11 +433,6 @@ tbody tr:hover{background:#fafbff;}
       <div class="nav-label">Pengaturan</div>
       <div class="nav-item" onclick="nav('settings')"><div class="nav-icon">⚙️</div> Pengaturan</div>
     </nav>
-    <div class="sidebar-upgrade">
-      <div class="upgrade-t">🏆 NexFinance Pro</div>
-      <div class="upgrade-d">Fitur AI forecast & multi-entity</div>
-      <button class="upgrade-btn">Upgrade Sekarang</button>
-    </div>
     <div class="sidebar-footer">
       <div class="user-card">
         <div class="user-av" id="sb-av">A</div>
@@ -296,22 +462,22 @@ tbody tr:hover{background:#fafbff;}
 <!-- ══════════ DASHBOARD ══════════ -->
 <div id="page-dashboard" class="page active">
   <div class="stats-grid">
-    <div class="stat-card">
+    <div class="stat-card clickable" onclick="nav('transactions');setTimeout(()=>{document.getElementById('txn-filter-type').value='';renderTxnTable();},100)">
       <div class="sc-top"><div class="sc-icon" style="background:var(--success-light)">💰</div><span class="sc-badge neutral" id="db-bal-lbl">Saldo</span></div>
       <div class="sc-value c-success" id="db-balance">–</div>
       <div class="sc-label">Saldo Bersih</div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card clickable" onclick="nav('transactions');setTimeout(()=>{document.getElementById('txn-filter-type').value='income';renderTxnTable();},100)">
       <div class="sc-top"><div class="sc-icon" style="background:var(--info-light)">📈</div><span class="sc-badge up">Pemasukan</span></div>
       <div class="sc-value c-primary" id="db-income">–</div>
       <div class="sc-label">Total Pemasukan</div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card clickable" onclick="nav('expense')">
       <div class="sc-top"><div class="sc-icon" style="background:var(--danger-light)">📉</div><span class="sc-badge down">Pengeluaran</span></div>
       <div class="sc-value c-danger" id="db-expense">–</div>
       <div class="sc-label">Total Pengeluaran</div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card clickable" onclick="nav('income');setTimeout(()=>{document.getElementById('inv-filter-status').value='pending';renderDocTable();},100)">
       <div class="sc-top"><div class="sc-icon" style="background:var(--warning-light)">🧾</div><span class="sc-badge neutral" id="db-doc-lbl">Dok</span></div>
       <div class="sc-value" style="color:var(--warning)" id="db-docs">–</div>
       <div class="sc-label">Dokumen Pending</div>
@@ -395,19 +561,19 @@ tbody tr:hover{background:#fafbff;}
     <div class="card-body" style="padding-bottom:0">
       <div class="filter-row">
         <div class="srch"><input type="text" id="inv-search" placeholder="Cari dokumen..." oninput="renderDocTable()"></div>
-        <select class="period-sel" id="inv-filter-type" onchange="renderDocTable()">
+        <div class="sel-wrap"><select id="inv-filter-type" onchange="renderDocTable()">
           <option value="">Semua Tipe</option>
           <option value="invoice">Invoice</option>
           <option value="receipt">Kuitansi</option>
           <option value="quotation">Penawaran</option>
-        </select>
-        <select class="period-sel" id="inv-filter-status" onchange="renderDocTable()">
+        </select></div>
+        <div class="sel-wrap"><select id="inv-filter-status" onchange="renderDocTable()">
           <option value="">Semua Status</option>
           <option value="pending">Pending</option>
           <option value="paid">Lunas</option>
           <option value="overdue">Overdue</option>
           <option value="partial">Sebagian</option>
-        </select>
+        </select></div>
       </div>
     </div>
     <div class="tbl-wrap">
@@ -451,9 +617,9 @@ tbody tr:hover{background:#fafbff;}
     <div class="card-body" style="padding-bottom:0">
       <div class="filter-row">
         <div class="srch"><input type="text" id="exp-search" placeholder="Cari..." oninput="renderExpTable()"></div>
-        <select class="period-sel" id="exp-filter-cat" onchange="renderExpTable()">
+        <div class="sel-wrap"><select id="exp-filter-cat" onchange="renderExpTable()">
           <option value="">Semua Kategori</option>
-        </select>
+        </select></div>
       </div>
     </div>
     <div class="tbl-wrap">
@@ -475,14 +641,14 @@ tbody tr:hover{background:#fafbff;}
     <div class="card-body" style="padding-bottom:0">
       <div class="filter-row">
         <div class="srch"><input type="text" id="txn-search" placeholder="Cari transaksi..." oninput="renderTxnTable()"></div>
-        <select class="period-sel" id="txn-filter-type" onchange="renderTxnTable()">
+        <div class="sel-wrap"><select id="txn-filter-type" onchange="renderTxnTable()">
           <option value="">Semua Tipe</option>
           <option value="income">Pemasukan</option>
           <option value="expense">Pengeluaran</option>
-        </select>
-        <select class="period-sel" id="txn-filter-cat" onchange="renderTxnTable()">
+        </select></div>
+        <div class="sel-wrap"><select id="txn-filter-cat" onchange="renderTxnTable()">
           <option value="">Semua Kategori</option>
-        </select>
+        </select></div>
       </div>
     </div>
     <div class="tbl-wrap">
@@ -708,6 +874,140 @@ tbody tr:hover{background:#fafbff;}
   </div>
 </div>
 
+
+<!-- ════ MODAL: VIEW INVOICE ════ -->
+<div id="modal-invoice-view" class="modal-overlay">
+  <div class="modal modal-lg inv-view" style="width:680px;max-height:92vh;">
+    <div class="modal-header" style="border:none;padding:16px 20px 12px;">
+      <h3 style="font-size:13px;color:var(--muted);font-weight:500;">Preview Dokumen</h3>
+      <div class="inv-modal-actions" style="display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-outline btn-sm" onclick="window.print()">🖨️ Print</button>
+        <button class="modal-close" onclick="closeModal('modal-invoice-view')">✕</button>
+      </div>
+    </div>
+
+    <!-- HEADER BAND -->
+    <div class="inv-header-band">
+      <div class="inv-band-top">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div id="inv-view-logo" class="inv-company-logo">N</div>
+          <div>
+            <div class="inv-company-name" id="inv-view-company">NexFinance</div>
+            <div class="inv-company-sub" id="inv-view-company-addr">—</div>
+          </div>
+        </div>
+        <div class="inv-number-wrap">
+          <div class="inv-number" id="inv-view-number">INV-001</div>
+          <div class="inv-type-pill" id="inv-view-type">Invoice</div>
+        </div>
+      </div>
+      <div class="inv-band-meta">
+        <div class="inv-meta-item">
+          <div class="inv-meta-label">Tanggal Dibuat</div>
+          <div class="inv-meta-value" id="inv-view-created">—</div>
+        </div>
+        <div class="inv-meta-item">
+          <div class="inv-meta-label">Jatuh Tempo</div>
+          <div class="inv-meta-value" id="inv-view-due">—</div>
+        </div>
+        <div class="inv-meta-item">
+          <div class="inv-meta-label">Status</div>
+          <div class="inv-meta-value" id="inv-view-status-band">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BODY -->
+    <div class="inv-body">
+
+      <!-- Parties -->
+      <div class="inv-parties">
+        <div>
+          <div class="inv-party-label">Dari</div>
+          <div class="inv-party-name" id="inv-view-from-name">—</div>
+          <div class="inv-party-sub" id="inv-view-from-sub">—</div>
+        </div>
+        <div>
+          <div class="inv-party-label">Kepada</div>
+          <div class="inv-party-name" id="inv-view-to-name">—</div>
+          <div class="inv-party-sub" id="inv-view-to-sub"></div>
+        </div>
+      </div>
+
+      <div class="inv-divider"></div>
+
+      <!-- Items table -->
+      <table class="inv-items-table">
+        <thead>
+          <tr>
+            <th style="width:40px">#</th>
+            <th>Deskripsi</th>
+            <th style="text-align:right">Jumlah</th>
+          </tr>
+        </thead>
+        <tbody id="inv-view-items"></tbody>
+      </table>
+
+      <!-- Totals -->
+      <div class="inv-totals">
+        <div class="inv-total-row">
+          <span class="inv-tl">Subtotal</span>
+          <span class="inv-tv" id="inv-view-subtotal">—</span>
+        </div>
+        <div class="inv-total-row" id="inv-view-disc-row" style="display:none">
+          <span class="inv-tl">Diskon</span>
+          <span class="inv-tv c-success" id="inv-view-discount">—</span>
+        </div>
+        <div class="inv-total-row" id="inv-view-tax-row" style="display:none">
+          <span class="inv-tl">Pajak (<span id="inv-view-tax-pct">0</span>%)</span>
+          <span class="inv-tv" id="inv-view-tax-amt">—</span>
+        </div>
+        <div class="inv-grand">
+          <span class="inv-tl">Total Tagihan</span>
+          <span class="inv-tv" id="inv-view-total">—</span>
+        </div>
+        <div class="inv-total-row" id="inv-view-paid-row" style="display:none">
+          <span class="inv-tl">Terbayar</span>
+          <span class="inv-tv c-success" id="inv-view-paid">—</span>
+        </div>
+        <div class="inv-total-row" id="inv-view-remaining-row" style="display:none">
+          <span class="inv-tl" style="font-weight:700;color:var(--danger)">Sisa</span>
+          <span class="inv-tv c-danger" id="inv-view-remaining">—</span>
+        </div>
+      </div>
+
+      <!-- Payment status -->
+      <div class="inv-payment-status" id="inv-view-pay-status">
+        <span class="inv-status-icon" id="inv-view-pay-icon">⏳</span>
+        <div class="inv-status-text">
+          <div class="inv-status-title" id="inv-view-pay-title">Menunggu Pembayaran</div>
+          <div class="inv-status-sub" id="inv-view-pay-sub">Belum ada pembayaran tercatat</div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="inv-notes" id="inv-view-notes-wrap" style="display:none">
+        <div class="inv-notes-label">Catatan</div>
+        <div class="inv-notes-text" id="inv-view-notes"></div>
+      </div>
+
+      <!-- Bank info -->
+      <div class="inv-bank-box" id="inv-view-bank-wrap" style="display:none">
+        <div class="inv-bank-icon">🏦</div>
+        <div>
+          <div class="inv-bank-name" id="inv-view-bank-name">—</div>
+          <div class="inv-bank-acc" id="inv-view-bank-acc">—</div>
+          <div class="inv-bank-holder" id="inv-view-bank-holder">—</div>
+        </div>
+      </div>
+
+    </div><!-- end inv-body -->
+
+    <div class="inv-footer-note">
+      Dokumen ini dibuat secara otomatis oleh sistem NexFinance · Terima kasih atas kepercayaan Anda
+    </div>
+  </div>
+</div>
 
 <script src="app.js"></script>
 </body>
