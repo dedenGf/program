@@ -33,13 +33,8 @@ if (!in_array($action, $publicActions)) {
         $token = trim($m[1]);
     }
 
-    if (empty($token)) {
-        http_response_code(401);
-        echo json_encode(["error" => "Unauthorized: token tidak ditemukan"]);
-        exit();
-    }
-
-    // Validasi token ke DB (dilakukan setelah koneksi)
+    // Simpan token untuk dicek setelah koneksi DB tersedia
+    // Jika token kosong, tetap lanjut — akan dicek apakah kolom api_token ada
     define('PENDING_TOKEN_CHECK', $token);
 }
 
@@ -61,13 +56,32 @@ try {
 // ── Validasi token setelah koneksi tersedia ────────────────
 if (defined('PENDING_TOKEN_CHECK')) {
     $tok = PENDING_TOKEN_CHECK;
-    $stmt = $conn->prepare("SELECT id FROM users WHERE api_token = :tok LIMIT 1");
-    $stmt->execute([':tok' => $tok]);
-    if (!$stmt->fetch()) {
-        http_response_code(401);
-        echo json_encode(["error" => "Unauthorized: token tidak valid"]);
-        exit();
+
+    // Cek apakah kolom api_token sudah ada di tabel users
+    $colExists = false;
+    try {
+        $chk = $conn->query("SHOW COLUMNS FROM users LIKE 'api_token'");
+        $colExists = ($chk->rowCount() > 0);
+    } catch(PDOException $e) {
+        $colExists = false;
     }
+
+    if ($colExists) {
+        // Kolom ada — wajib validasi token
+        if (empty($tok)) {
+            http_response_code(401);
+            echo json_encode(["error" => "Unauthorized: token tidak ditemukan"]);
+            exit();
+        }
+        $stmt = $conn->prepare("SELECT id FROM users WHERE api_token = :tok LIMIT 1");
+        $stmt->execute([':tok' => $tok]);
+        if (!$stmt->fetch()) {
+            http_response_code(401);
+            echo json_encode(["error" => "Unauthorized: token tidak valid"]);
+            exit();
+        }
+    }
+    // Kolom api_token belum ada → skip validasi (graceful fallback)
 }
 
 $input = json_decode(file_get_contents("php://input"), true) ?? [];
@@ -393,16 +407,21 @@ switch ($action) {
             $stmt->execute([':username' => $input['username'], ':password' => $input['password']]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($user) {
-                // Generate secure token & persist it
                 $token = bin2hex(random_bytes(32));
-                // Ensure column exists (graceful: skip if column missing)
+
+                // Cek apakah kolom api_token sudah ada — kalau belum, buat otomatis
                 try {
+                    $chk = $conn->query("SHOW COLUMNS FROM users LIKE 'api_token'");
+                    if ($chk->rowCount() === 0) {
+                        $conn->exec("ALTER TABLE users ADD COLUMN api_token VARCHAR(64) NULL DEFAULT NULL");
+                    }
                     $upd = $conn->prepare("UPDATE users SET api_token=:tok WHERE id=:id");
                     $upd->execute([':tok' => $token, ':id' => $user['id']]);
                 } catch(PDOException $e) {
-                    // api_token column may not exist yet — still allow login, just skip token
+                    // Tidak bisa alter/update — tetap login tanpa token
                     $token = null;
                 }
+
                 echo json_encode(["success" => true, "user" => $user, "token" => $token]);
             } else {
                 http_response_code(401);
