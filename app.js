@@ -945,11 +945,20 @@ document.getElementById('l-user').addEventListener('keydown', e=>{ if(e.key==='E
 window.addEventListener('DOMContentLoaded', ()=>{
   const savedSession = sessionStorage.getItem('nf_session');
   const savedToken   = sessionStorage.getItem('nf_token');
-  if(savedSession){
+
+  // Kalau ada session TAPI tidak ada token → session lama sebelum fitur token
+  // Paksa clear supaya user login ulang dan dapat token baru
+  if(savedSession && !savedToken){
+    sessionStorage.removeItem('nf_session');
+    sessionStorage.removeItem('nf_token');
+  }
+
+  if(savedSession && savedToken){
     SESSION    = JSON.parse(savedSession);
-    AUTH_TOKEN = savedToken || null;
+    AUTH_TOKEN = savedToken;
     startApp();
   }
+
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('txn-date').value = today;
   document.getElementById('doc-due').value  = today;
